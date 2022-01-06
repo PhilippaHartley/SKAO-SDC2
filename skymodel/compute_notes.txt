@@ -1,0 +1,8 @@
+multiprocessing:
+
+time (s) to go over loops:
+                                1 core              8 cores
+no morphology           16.66080403327942           10
+full script 
+no writing                          116         120
+no or morphology or writing    16.3                 10
