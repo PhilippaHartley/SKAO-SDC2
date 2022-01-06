@@ -1,0 +1,7 @@
+sim_side=5.4
+fluxlim=2.e-7
+fluxlim_freq=1150.
+freqs_file=frequency_list_sdc2.dat
+outdir=/home/a.bonaldi/local2/scratch/Bonaldi/Radio_srccnt/TESTS_newtrecs/SDC2/sdc2_fullcube/continuum
+save_lums=0
+zmax=0.5
