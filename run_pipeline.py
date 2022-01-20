@@ -29,8 +29,3 @@ if config.getboolean("pipeline", "dodiagnostics"):
     from skymodel.diagnostics import make_plots
 
     make_plots(config)
-
-if config.getboolean("pipeline", "dotelescope"):
-    from simulatedata.simdata import runSimulateData
-
-    runTelescope(config)
