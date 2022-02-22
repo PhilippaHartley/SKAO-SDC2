@@ -259,8 +259,9 @@ def make_img(config,ska_flux,ska_alpha,ska_freqmin,freqs,ska_size,ska_min,ska_PA
         # get datacube and header properties
         #cube_name = datacube_dir+prepared_dir+'{}cr_rotated_shrunk.fits'.format((i[9]))
 
-        #cube_name = datacube_dir+prepared_cubes[distance_min_arg,0]  #old format
-        cube_name = prepared_cubes[distance_min_arg,0].split('/home/a.bonaldi/data-cold-for-backup/data_challenges/inputs/AGN_library/')[1] #the path is in the metadata file
+        cube_name = prepared_cubes[distance_min_arg,0]  #old format
+
+
         print('cube_name: ', cube_name)
         
         cube_fits = fits.open(cube_name)
