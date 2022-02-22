@@ -623,7 +623,7 @@ def runSkyModel(config):
             plt.ylabel("10*np.cos(inclination (degrees))")
             plt.xlabel("log10MHI (M_solar)")
             plt.show()
-
+        """
         for i, cat_gal in enumerate(cat):
             add_source(
                 i,
@@ -642,17 +642,30 @@ def runSkyModel(config):
         #     break
         """
 
-        print ('going into loop')
-        pool = multiprocessing.Pool(n_cores) 
-        for i,cat_gal in enumerate(cat): 
-        
-    
-        # Draw the galaxies onto the galsim image
+        print("going into loop")
+        pool = multiprocessing.Pool(n_cores)
+        for i, cat_gal in enumerate(cat):
 
-            pool.apply_async(add_source, args = (i,cat_gal, nobj, w_spectral, config, pixel_scale_str, dnu, psf_maj_arcsec, arr_dims, all_gals_fname, cat ))#, callback = log_result)
+            # Draw the galaxies onto the galsim image
+
+            pool.apply_async(
+                add_source,
+                args=(
+                    i,
+                    cat_gal,
+                    nobj,
+                    w_spectral,
+                    config,
+                    pixel_scale_str,
+                    dnu,
+                    psf_maj_arcsec,
+                    arr_dims,
+                    all_gals_fname,
+                    cat,
+                ),
+            )  # , callback = log_result)
         pool.close()
         pool.join()
-        """
 
         atlas_sources = cat["Atlas_source"]
         filled_rows = np.argwhere(atlas_sources != "0.0")[
