@@ -646,8 +646,6 @@ def runSkyModel(config):
         pool = multiprocessing.Pool(n_cores)
         for i, cat_gal in enumerate(cat):
 
-            # Draw the galaxies onto the galsim image
-
             pool.apply_async(
                 add_source,
                 args=(
@@ -663,7 +661,7 @@ def runSkyModel(config):
                     all_gals_fname,
                     cat,
                 ),
-            )  # , callback = log_result)
+            )
         pool.close()
         pool.join()
 
