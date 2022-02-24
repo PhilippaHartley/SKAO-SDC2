@@ -1254,26 +1254,6 @@ def runSkyModel(config):
 
             unresolveds = 0
 
-            # make jobs here
-
-            """
-
-            jobs = []
-        
-        for i in range((ncores)):
-            data_dir = training_dir+'Public/'#! no pos/neg dirs
-            
-            files = name_list_array[i]
-            print (files)
-
-            p = multiprocessing.Process(target=extract_features.main,args = (band_names,data_dir, features_filename, i,make_colour_plots, cplot_path, files))
-            jobs.append(p)
-            p.start()
-        for i in jobs:
-            print ('joining ', i)
-            i.join()
-            """
-
             # Draw the galaxies onto the galsim image
             for i, cat_gal in enumerate(cat):
 
