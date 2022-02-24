@@ -72,6 +72,41 @@ def retrieve_flux():
 """
 
 
+def log_result(result):
+    # This is called whenever foo_pool(i) returns a result.
+    # result_list is modified only by the main process, not the pool workers.
+    #  i = result[0]
+    #  D_HI = result[1]
+    #  cat["HI_size_kpc"][i] = D_HI
+
+    global cat
+
+    # cat["HI_size"][i] = result[2]
+    print("************************")
+    print(result)
+    (
+        i,
+        D_HI,
+        D_HI_arcsec,
+        atlas_source,
+        flux,
+        w20,
+        MHI_incl_v_scale,
+        MHI_incl_scale,
+        ska_PA,
+    ) = result
+
+    print("*****************", D_HI)
+    cat["HI_size_kpc"][i] = D_HI
+    cat["HI_size"][i] = D_HI_arcsec
+    cat["Atlas_source"][i] = atlas_source
+    cat["line_flux_integral"][i] = flux
+    cat["w20"][i] = w20
+    cat["MHI_incl_v_scale"][i] = MHI_incl_v_scale
+    cat["MHI_incl_scale"][i] = MHI_incl_scale
+    cat["PA"][i] = ska_PA
+
+
 def add_source(
     i,
     cat_gal,
@@ -84,7 +119,14 @@ def add_source(
     arr_dims,
     all_gals_fname,
     cat,
+    root,
 ):
+    print("making source")
+    mainlog = logging.getLogger("main%d" % i)
+    h = logging.FileHandler("log%d.log" % i)
+    mainlog.addHandler(h)
+    logging.root.setLevel(logging.DEBUG)
+    mainlog.info("result%s" % i)
 
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
@@ -226,21 +268,30 @@ def add_source(
     t_source = time.time() - tstart
 
     # append catalogue with any new properties
-    cat["HI_size_kpc"][i] = D_HI
-    cat["HI_size"][i] = D_HI_arcsec
-    cat["Atlas_source"][i] = atlas_source
-    cat["line_flux_integral"][i] = flux
-    cat["w20"][i] = w20
-    cat["MHI_incl_v_scale"][i] = MHI_incl_v_scale
-    cat["MHI_incl_scale"][i] = MHI_incl_scale
-    print("pa fix:")
-    print(cat["PA"][i])
-    cat["PA"][i] = ska_PA
-    print(cat["PA"][i])
+
     fitsf.close()
     logging.info("")
+    print(i)
+    mainlog.info("done_make_cube%s" % i)
+    with open("log%d.log" % i, "r") as f:
+        a = f.readlines()
+        print(a)
 
-    return
+    with open("all_log.txt", "a") as f:
+        f.writelines(a)
+    os.system("rm log%d.log" % i)
+
+    return (
+        i,
+        D_HI,
+        D_HI_arcsec,
+        atlas_source,
+        flux,
+        w20,
+        MHI_incl_v_scale,
+        MHI_incl_scale,
+        ska_PA,
+    )
 
 
 def runSkyModel(config):
@@ -448,6 +499,7 @@ def runSkyModel(config):
         #  f= open(outf,"w+")
 
         logging.info("Loading catalogue from {0} ...".format(cat_file_name))
+        global cat
         cat = Table()
 
         cat_read = Table.read(cat_file_name)  # remove ascii
@@ -623,32 +675,10 @@ def runSkyModel(config):
             plt.ylabel("10*np.cos(inclination (degrees))")
             plt.xlabel("log10MHI (M_solar)")
             plt.show()
-        """
-        for i, cat_gal in enumerate(cat):
-            add_source(
-                i,
-                cat_gal,
-                nobj,
-                w_spectral,
-                config,
-                pixel_scale_str,
-                dnu,
-                psf_maj_arcsec,
-                arr_dims,
-                all_gals_fname,
-                cat,
-            )
-        # if i == 100000:
-        #     break
-        """
-
-        print("going into loop")
-        pool = multiprocessing.Pool(n_cores)
-        for i, cat_gal in enumerate(cat):
-
-            pool.apply_async(
-                add_source,
-                args=(
+        pool = 1
+        if not pool:
+            for i, cat_gal in enumerate(cat):
+                add_source(
                     i,
                     cat_gal,
                     nobj,
@@ -660,18 +690,55 @@ def runSkyModel(config):
                     arr_dims,
                     all_gals_fname,
                     cat,
-                ),
-            )
-        pool.close()
-        pool.join()
+                )
+        # if i == 100000:
+        #     break
+        if pool:
+            print("going into loop")
+            multiprocessing.set_start_method("fork")
+            pool = multiprocessing.Pool(n_cores)
+            for i, cat_gal in enumerate(cat):
+                mainlog = logging.getLogger("main%d" % i)
+                h = logging.FileHandler("log%d.log" % i)
+                mainlog.addHandler(h)
+                logging.root.setLevel(logging.DEBUG)
+                mainlog.info("test%s" % i)
+
+                pool.apply_async(
+                    add_source,
+                    args=(
+                        i,
+                        cat_gal,
+                        nobj,
+                        w_spectral,
+                        config,
+                        pixel_scale_str,
+                        dnu,
+                        psf_maj_arcsec,
+                        arr_dims,
+                        all_gals_fname,
+                        cat,
+                        mainlog,
+                    ),
+                    callback=log_result,
+                )
+
+            pool.close()
+            pool.join()
+            print(cat)
+            print(cat["Atlas_source"][i])
 
         atlas_sources = cat["Atlas_source"]
+
         filled_rows = np.argwhere(atlas_sources != "0.0")[
             :, 0
         ]  # this should no longer be needed as clipping
         len1 = len(cat)
+
         cat = cat[filled_rows]
         len2 = len(cat)
+        print(len1, len2)
+
         if len1 != len2:
             print("some sources were not added")
             exit()
