@@ -138,7 +138,10 @@ def make_cube(
 ):
 
     # set up cosmology
+    mainlog = logging.getLogger("main%d" % i)
 
+    logging.root.setLevel(logging.DEBUG)
+    mainlog.info("make_cube%s" % i)
     H = config.getfloat("cosmology", "H")
     M = config.getfloat("cosmology", "M")
     L = config.getfloat("cosmology", "L")
