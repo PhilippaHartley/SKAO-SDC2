@@ -72,6 +72,15 @@ def retrieve_flux():
 """
 
 
+def log_result_continuum(result):
+    return
+
+
+def add_source_continuum():
+
+    return
+
+
 def log_result(result):
     # This is called whenever foo_pool(i) returns a result.
     # result_list is modified only by the main process, not the pool workers.
@@ -1005,6 +1014,8 @@ def runSkyModel(config):
 
             # Load the catalogue
             # cat_file_name = config.get('pipeline', 'base_dir')+ config.get('pipeline', 'data_path')+config.get('field', 'catalogue')
+
+            HI_cross = False  # assume that the catalogue is con cross-matched with HI
             cat_file_name = config.get("field", "catalogue")
 
             outf = cat_file_name + "_pos_offsets"
@@ -1014,6 +1025,10 @@ def runSkyModel(config):
             cat = Table()
 
             cat_read = Table.read(cat_file_name)  # remove ascii
+            keywords = cat_read.colnames
+
+            if "M_HI" in keywords:
+                HI_cross = True
 
             source_prefix = "TRECS-"
 
@@ -1047,11 +1062,10 @@ def runSkyModel(config):
             cat["dec_offset"].unit = "deg"
             dec_abs_radians = cat["DEC"] * galsim.degrees / galsim.radians
 
-            # ANNA: this needs to be changes as not general. if works with cross catalogues where there is a double redshift column. Need to handle with an IF to verify the presence of this column
-
             z = cat_read["redshift"]
-            z_1 = cat_read["redshift_1"]
-            z[z == -100] = z_1[z == -100]
+            if HI_cross == True:
+                z_1 = cat_read["redshift_1"]
+                z[z == -100] = z_1[z == -100]
             cat["z"] = z
             cat["z"].unit = "none"
 
@@ -1064,19 +1078,34 @@ def runSkyModel(config):
 
             cat["flux2"] = cat_read["I" + top_freqname] * 1.0e-3  # Jy
             cat["flux2"].unit = "Jy"
+
             cat["spectral_index"] = np.log10(
                 cat["Total_flux"] / cat["flux2"]
             ) / np.log10(base_freq / top_freq)
+
+            # read the relevant quantities to implement flux cuts
+            if config.getboolean("skymodel", "highfluxcut") == True:
+                highflux = config.getfloat("skymodel", "highfluxcut_value")
+                flux_sel_freq = config.get("skymodel", "fluxcut_frequency")
+                print(highflux, flux_sel_freq)
+                cat["flux_selection"] = cat_read["I" + flux_sel_freq] * 1.0e-3  # Jy
+
+            if config.getboolean("skymodel", "lowfluxcut") == True:
+                lowflux = config.getfloat("skymodel", "lowfluxcut_value")
+                flux_sel_freq = config.get("skymodel", "fluxcut_frequency")
+                cat["flux_selection"] = cat_read["I" + flux_sel_freq] * 1.0e-3  # Jy
 
             maj = cat_read["size"]  # arcsec
             cat["Maj"] = maj
 
             cat["Maj"].unit = "arcsec"
+
             q = cat_read["axis ratio"]
-            q1 = cat_read["axis ratio_1"]
-            q[q == -100] = q1[q == -100]
+            if HI_cross == True:
+                q1 = cat_read["axis ratio_1"]
+                q[q == -100] = q1[q == -100]
             cat["Min"] = maj * q
-            print(cat["Min"])
+
             cat["Min"].unit = "arcsec"
 
             # ANNA: check if those are still needed
@@ -1093,48 +1122,40 @@ def runSkyModel(config):
 
             cat["Rs"] = cat_read["Rs"]
 
-            # pa=cat_read['PA']
-            ###ANNA: not general, assumes cross catalogue
-            # pa_1=cat_read['PA_1']
-            # pa_2=np.random.uniform(low=0, high=359., size=len(cat))  #PA not defined for AGN, here generate random
-            # pa[pa==-100]=pa_1[pa==-100]
-            # pa[pa==-100]=pa_2[pa==-100]
-            # cat['PA'] = pa
-
-            # cat['PA'].unit='deg'
-
-            rdcl = cat_read["RadioClass"]  # to be used in source seletions
+            rdcl = cat_read["RadioClass"]  # to be used in source selection
             cat["RadioClass"] = rdcl
 
             pa = cat_read[
                 "PA"
             ]  # this is the HI PA. rotate of 90 degs for AGN counterparts
-            # ANNA: not general, assumes cross catalogue
-            pa_copy = pa + 90.0
-            pa_copy[pa_copy > 359.0] = pa_copy[pa_copy > 359.0] - 360.0
-            pa_copy[pa == -100] = -100.0
 
-            pa[rdcl > 3] = pa_copy[rdcl > 3]  # AGN PA 90degs from HI PA.
-            pa_1 = cat_read["PA_1"]
+            if HI_cross == True:
+                cat["MHI"] = cat_read[
+                    "MHI"
+                ]  # this needed to select only Hi counterparts - for test purposes
+                # PA in continuum is the HI PA rotated by 90 degs
+                pa_copy = pa + 90.0
+                pa_copy[pa_copy > 359.0] = pa_copy[pa_copy > 359.0] - 360.0
+                pa_copy[pa == -100] = -100.0
 
-            np.random.seed(mother_seed + 1)
-            pa_2 = np.random.uniform(
-                low=0, high=359.0, size=len(cat)
-            )  # PA not defined for AGN, here generate random
+                pa[rdcl > 3] = pa_copy[rdcl > 3]  # AGN PA 90degs from HI PA.
+                pa_1 = cat_read["PA_1"]
 
-            pa[pa == -100] = pa_1[pa == -100]
-            pa[pa == -100] = pa_2[pa == -100]
+                np.random.seed(mother_seed + 1)
+                pa_2 = np.random.uniform(
+                    low=0, high=359.0, size=len(cat)
+                )  # PA not defined for AGN, here generate random
+
+                pa[pa == -100] = pa_1[pa == -100]
+                pa[pa == -100] = pa_2[pa == -100]
+
+                # free
+                pa_1 = 0
+                pa_2 = 0
+                pa_copy = 0
+
             cat["PA"] = pa
-
             cat["PA"].unit = "deg"
-            # free
-            pa_1 = 0
-            pa_2 = 0
-            pa_copy = 0
-
-            cat["MHI"] = cat_read[
-                "MHI"
-            ]  # this needed to select only Hi counterparts - for test purposes
 
             # selects only continuum, AGNs
             #  cat = cat[(cat['RadioClass']>3)*(cat['RadioClass']!=-100)*(cat['Maj']<3600.)] #exclude too big - memory problem and not realistic
@@ -1143,14 +1164,31 @@ def runSkyModel(config):
             # cat = cat[(cat['RadioClass']<4)*(cat['RadioClass']!=-100)*(cat['Maj']>10.)] #resolved sfg
 
             # select continuum sources
-            cat = cat[
-                (cat["RadioClass"] != -100) * (cat["Maj"] < 200.0)
-            ]  # exclude too big - memory problem and not realistic] #select only continuum
+            cat = cat[(cat["RadioClass"] != -100) * (cat["Maj"] < 200.0)]
+            # exclude too big - memory problem and not realistic] #select only continuum
             # print(len(cat))
             # cat = cat[(cat['MHI']!=-100.)] # only to get continuum only #change change
             # cat = cat[(cat['RadioClass']<4)] # only to get SFG only #change change
             # print(len(cat))
             #  exit()
+
+            if config.getboolean("skymodel", "highfluxcut") == True:
+                print("applying high flux cut")
+                len_old = len(cat)
+
+                cat = cat[(cat["flux_selection"] < highflux)]
+
+                print("number of sources excluded")
+                print(len_old - len(cat))
+
+            if config.getboolean("skymodel", "lowfluxcut") == True:
+                print("applying low flux cut")
+                len_old = len(cat)
+
+                cat = cat[(cat["flux_selection"] > lowflux)]
+
+                print("number of sources excluded")
+                print(len_old - len(cat))
 
             # define additional source attributes not contained in the TRECS cat
             cat["Atlas_source"] = np.zeros(len(cat)).astype(np.str)
@@ -1158,43 +1196,16 @@ def runSkyModel(config):
 
             corefrac = np.random.normal(
                 loc=0.75, scale=0.1, size=len(cat)
-            )  # initialise core fraction. Steep-spectrum AGN dont use it as it is determined by the postage stamp. ANNA: need to make it deterministic by fixing the seed
+            )  # initialise core fraction. Steep-spectrum AGN dont use it as it is determined by the postage stamp.
             cat["corefrac"] = corefrac
             np.random.seed(mother_seed + 1000)
-            # this random number of used later to associate sources to postage stamps. ANNA: need to make it deterministic by fixing the seed
-            ranid = np.random.uniform(
-                low=0, high=1, size=len(cat)
-            )  # qui mettere diverso centro per Rs
+
+            # this random number is used later to associate sources to postage stamps
+            ranid = np.random.uniform(low=0, high=1, size=len(cat))
 
             ranid[cat["Rs"] <= 0.5] = ranid[cat["Rs"] <= 0.5] - 10
             ranid[cat["Rs"] > 0.5] = ranid[cat["Rs"] > 0.5] + 10
             cat["ranid"] = ranid
-
-            # flux cuts
-            if config.getboolean("skymodel", "highfluxcut"):
-                highflux_cut = cat["Total_flux"] < config.getfloat(
-                    "skymodel", "highfluxcut_value"
-                )
-                cat = cat[highflux_cut]
-
-            if config.getboolean("skymodel", "lowfluxcut"):
-                lowflux_cut = cat["Total_flux"] > config.getfloat(
-                    "skymodel", "lowfluxcut_value"
-                )
-                cat = cat[lowflux_cut]
-
-            if config.getboolean("skymodel", "highsizecut"):
-                # ANNA: more elegant to deal here with sources unrealistically big by setting a default for highsizecut
-                highsize_cut = cat["Maj"] < config.getfloat(
-                    "skymodel", "highsizecut_value"
-                )
-                cat = cat[highsize_cut]
-
-            if config.getboolean("skymodel", "lowsizecut"):
-                lowsize_cut = cat["Maj"] > config.getfloat(
-                    "skymodel", "lowsizecut_value"
-                )
-                cat = cat[lowsize_cut]
 
             if config.get("skymodel", "sizescale") == "constant":
                 cat["Maj"] = np.ones_like(cat["Maj"]) * config.getfloat(
@@ -1285,7 +1296,9 @@ def runSkyModel(config):
 
                 x = float(x)
                 y = float(y)
-
+                # print(cat_gal["RA"],
+                #      cat_gal["DEC"],x,y)
+                # exit()
                 #    for three axes:   pixels = wcs.world_to_pixel(coord, 3000 * u.m / u.s)
 
                 logging.info("RA, Dec: %f %f ", cat_gal["RA"], cat_gal["DEC"])
@@ -1312,7 +1325,7 @@ def runSkyModel(config):
                 #            if source centre is in FoV:
                 if (ix > 0) and (iy > 0) and (ix <= n_x) and (iy <= n_y):
                     print(
-                        "sorgente",
+                        "source",
                         cat_gal["PA"],
                         cat_gal["Total_flux"],
                         cat_gal["Maj"],
