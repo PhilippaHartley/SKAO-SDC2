@@ -436,10 +436,9 @@ def make_img(
             cube2 = astropy_conv[
                 padding_a : padding_a + size_a, padding_b : padding_b + size_b
             ]
-            cube2 = cube / np.sum(cube2)
+            cube2 = cube2 / np.sum(cube2)
 
         smoothing_done = 1  # flag so that it is not smoothed later (whether I did or not because in that case atlas was low reso)
-        print(cube2.shape)
 
     if smoothing_done == 0:
         # convolution done on all sources - resolved and unresolved - check
