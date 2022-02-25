@@ -27,7 +27,6 @@ import time
 
 import fitsio
 import galsim
-
 ###from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -35,7 +34,6 @@ import numpy as np
 from astropy import units as uns
 from astropy import wcs as ast_wcs
 from astropy.coordinates import SkyCoord
-
 # from spectral_cube import SpectralCube
 from astropy.cosmology import LambdaCDM
 from astropy.io import fits as astfits
