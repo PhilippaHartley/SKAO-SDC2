@@ -24,6 +24,7 @@ import pdb
 import pickle
 import sys
 import time
+from pickletools import read_long1
 
 import fitsio
 import galsim
@@ -109,8 +110,6 @@ def add_source_continuum(
     mainlog.info("result%s" % i)
     """
     print(i)
-    if 1:
-        return
 
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
@@ -387,8 +386,6 @@ def add_source(
     root,
 ):
 
-    print(i)
-    return
     print("making source")
     mainlog = logging.getLogger("main%d" % i)
     h = logging.FileHandler("log%d.log" % i)
@@ -975,6 +972,7 @@ def runSkyModel(config):
                         cat,
                         mainlog,
                     ),
+                    callback=log_result,
                 )
 
             pool.close()
@@ -1500,7 +1498,23 @@ def runSkyModel(config):
 
             print("going into loop")
             multiprocessing.set_start_method("fork")
-            pool = multiprocessing.Pool(n_cores)
+            pool = multiprocessing.Pool(4)
+            cat = cat[
+                "RA",
+                "DEC",
+                "Total_flux",
+                "z",
+                "spectral_index",
+                "Maj",
+                "Min",
+                "PA",
+                "RadioClass",
+                "corefrac",
+                "ranid",
+            ]
+            cat = cat[:10000]
+
+            print(bytes(cat))
             for i, cat_gal in enumerate(cat):
                 p = 0
                 """
@@ -1530,8 +1544,8 @@ def runSkyModel(config):
                     ),
                 )
 
-            pool.close()
-            pool.join()
+        pool.close()
+        pool.join()
 
         print("loop finished")
         # write out catalogue
