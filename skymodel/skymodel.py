@@ -1237,7 +1237,7 @@ def runSkyModel(config):
         fitsf_z.close()
 
         fitsf = FITS(all_gals_fname, "rw")
-
+        fitsf.close()
         cr_x, cr_y = w_twod.wcs_world2pix(
             ra_field_gs,
             dec_field_gs,
@@ -1290,13 +1290,12 @@ def runSkyModel(config):
             cat["Source_id"] = source_name_pos
 
             cat["RA"] = cat_read["longitude"]  # deg
-            ra_shift = np.copy(cat["RA"])
-            ra_shift[cat["RA"] > 180.0] -= 360.0
 
-            cat["ra_offset"] = ra_shift - ra_field_gs  # deg
+            cat["ra_offset"] = cat["RA"] - ra_field_gs  # deg
             cat["ra_offset"].unit = "deg"
 
             cat["DEC"] = cat_read["latitude"]  # deg
+
             cat["dec_offset"] = cat_read["latitude"] - dec_field_gs  # deg
             cat["dec_offset"].unit = "deg"
             dec_abs_radians = cat["DEC"] * galsim.degrees / galsim.radians
@@ -1498,7 +1497,23 @@ def runSkyModel(config):
 
             print("going into loop")
             multiprocessing.set_start_method("fork")
-            pool = multiprocessing.Pool(4)
+            pool = multiprocessing.Pool(n_cores)
+
+            # fov cut, put cos(dec) factor into ra offset
+            cosdec = np.cos(dec_field_gs * 2 * np.pi / 360)
+
+            # need to think about removing cosdec since higher-up sources are not filling plane
+            ra_offset_max = (1 / cosdec) * (
+                (fov / 60) / 2
+            )  # this is now a fraction of the written image size
+            dec_offset_max = (fov / 60) / 2  # convert fov to degrees
+
+            fov_cut = (abs(cat["ra_offset"]) < ra_offset_max) * (
+                abs(cat["dec_offset"]) < dec_offset_max
+            )
+
+            cat = cat[fov_cut]
+            print(cat["DEC"])
             cat = cat[
                 "RA",
                 "DEC",
@@ -1512,7 +1527,6 @@ def runSkyModel(config):
                 "corefrac",
                 "ranid",
             ]
-            cat = cat[:10000]
 
             print(bytes(cat))
             for i, cat_gal in enumerate(cat):
@@ -1524,6 +1538,9 @@ def runSkyModel(config):
                 logging.root.setLevel(logging.DEBUG)
                 mainlog.info("test%s" % i)
                 """
+                if i == 10000:
+
+                    exit()
 
                 pool.apply_async(
                     add_source_continuum,
@@ -1548,12 +1565,19 @@ def runSkyModel(config):
         pool.join()
 
         print("loop finished")
+        print(time.time() - tstart)
         # write out catalogue
         truthcat_name = (
             data_path + config.get("field", "fits_prefix") + "_truthcat.fits"
         )
         logging.info("Writing truth catalogue to: {0} ...".format(truthcat_name))
         cat.write(truthcat_name, format="fits", overwrite=True)
+
+        flux = astfits.getdata(all_gals_fname)
+        print(flux.shape)
+        summed_line_flux = np.sum(flux, axis=0)
+        plt.imshow(summed_line_flux)
+        plt.show()
 
         logging.info("Unresolveds: %d", np.sum(cat["Unresolved"].astype(np.float)))
 
