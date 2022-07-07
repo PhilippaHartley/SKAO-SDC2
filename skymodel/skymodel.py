@@ -832,7 +832,7 @@ def runSkyModel(config):
         os.system(
             "md5sum %s > %s" % (all_gals_fname, all_gals_fname.strip("fits") + "md5")
         )
-    if config.getboolean("skymodel", "doagn"):
+    if config.getboolean("skymodel", "docontinuum"):
         # set spectral properties
         HI_line = config.getfloat("observation", "rest_freq")
         base_freq = config.getfloat("observation", "lowest_frequency")  # *1.e6 #Hz
@@ -919,6 +919,8 @@ def runSkyModel(config):
         os.system("rm {0}".format(all_gals_fname))
         os.system("rm {0}".format(all_gals_fname + "_z.fits"))
         os.system("rm {0}".format(all_gals_fname + "_maxflux.fits"))
+        os.system("rm {0}".format(all_gals_fname + "_pola.fits"))
+        
         logging.info("Creating empty image file, {0} ...".format(all_gals_fname))
 
         # first use fitsio to make huge cube by exploting the expand_if_needed functionality of the image write function
@@ -989,17 +991,22 @@ def runSkyModel(config):
         # files storing the brightest object and the redshift of the brightest object
         fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
         fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
+        fitsf_p = FITS(all_gals_fname + "_pola.fits", "rw")
+
 
         # initialise files
         fitsf.write(img2, header=header_dict)
         fitsf_f.write(img2_1D, header=header_dict)
         fitsf_z.write(img2_1D, header=header_dict)
 
+        fitsf_p.write(img2, header=header_dict)
+        
         fitsf.close()
         fitsf_f.close()
         fitsf_z.close()
-
-        fitsf = FITS(all_gals_fname, "rw")
+        fitsf_p.close()
+        
+        
 
         cr_x, cr_y = w_twod.wcs_world2pix(
             ra_field_gs,
@@ -1009,12 +1016,15 @@ def runSkyModel(config):
 
         logging.info("Check world2pix crpix1, crpix2: %f %f", cr_x, cr_y)
 
-        if config.getboolean("skymodel", "doagn"):
+        if config.getboolean("skymodel", "docontinuum"):
             # reading the catalogue. The keywork could become 'docontinuum' an SFGs and AGNs done together here
 
             # Load the catalogue
             # cat_file_name = config.get('pipeline', 'base_dir')+ config.get('pipeline', 'data_path')+config.get('field', 'catalogue')
 
+            if config.getboolean("skymodel", "dopolarization") == True:
+                polarization = True
+            
             HI_cross = False  # assume that the catalogue is con cross-matched with HI
             cat_file_name = config.get("field", "catalogue")
 
@@ -1083,6 +1093,11 @@ def runSkyModel(config):
                 cat["Total_flux"] / cat["flux2"]
             ) / np.log10(base_freq / top_freq)
 
+            if polarization == True:
+                cat["polafrac"] = cat_read["P" + base_freqname] * 1.0e-3 /cat["Total_flux"]  #polarization fraction   
+
+
+            
             # read the relevant quantities to implement flux cuts
             if config.getboolean("skymodel", "highfluxcut") == True:
                 highflux = config.getfloat("skymodel", "highfluxcut_value")
@@ -1456,10 +1471,8 @@ def runSkyModel(config):
                             print(start0, start1, start2, end0, end1, end2)
                             img3 = img3[start0:end0, start1:end1, start2:end2]
 
-                            # plt.subplot(122)
-                            # plt.imshow(img3[0,:,:],origin ='lower')
-                            # plt.show()
-                            # plt.clf()
+                            
+                            
                             print("old coords:", blc0, blc1, blc2, trc0, trc1, trc2)
 
                             np.putmask(blcs, bottom_excess < 0, 0)
@@ -1479,11 +1492,15 @@ def runSkyModel(config):
                             trc2,
                         )
 
+                        if (polarization == True):
+                                img3_pola= img3*cat_gal['polafrac']
+                                
                         # write the info for this object to files
                         fitsf = FITS(all_gals_fname, "rw")
                         fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
                         fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
-
+                        fitsf_p = FITS(all_gals_fname + "_pola.fits", "rw")
+                        
                         # the redshift map contains the redshift of the brightest source on the LoS. This is judged by looking at the dummy map _maxflux and comparing if with the postage stamp. The z map is updated only where the postage stamp is brighter than what recorder in _maxflux
 
                         # read the recorded values for flux and redshift at the postage location
@@ -1510,15 +1527,29 @@ def runSkyModel(config):
                         fitsf_f[0].write(img_f, 0, blc1, blc2, 0, trc1, trc2)
                         fitsf_z[0].write(img_z, 0, blc1, blc2, 0, trc1, trc2)
 
-                        # adding the source to the total map
+                        # update the total intensity map by adding the new source to the region
                         region = fitsf[0][
                             blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1
                         ]
                         #             print(region.shape)
-                        print(img3.shape)
+                        ###print(img3.shape)
                         img3 += region
                         fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
 
+
+                        if polarization == True:
+                        # update the total intensity map by adding the new source to the region
+                            
+                            region = fitsf_p[0][
+                                blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1
+                            ]
+                        
+                            img3_pola += region
+                            fitsf_p[0].write(img3_pola, blc0, blc1, blc2, trc0, trc1, trc2)
+
+
+
+                        
                         t_source = time.time() - tstart
 
                         fitsf.close()

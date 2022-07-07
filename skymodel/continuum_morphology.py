@@ -300,9 +300,9 @@ def make_img(
         print(cube_name)
 
         # PH: temporary path fix
-        cube_name = cube_name.split(
-            "/home/a.bonaldi/data-cold-for-backup/data_challenges/inputs/AGN_library/"
-        )[1]
+        #cube_name = cube_name.split(
+        #    "/home/a.bonaldi/data-cold-for-backup/data_challenges/inputs/AGN_library/"
+        #)[1]
 
         print("cube_name: ", cube_name)
 
