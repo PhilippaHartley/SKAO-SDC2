@@ -920,6 +920,8 @@ def runSkyModel(config):
         os.system("rm {0}".format(all_gals_fname + "_z.fits"))
         os.system("rm {0}".format(all_gals_fname + "_maxflux.fits"))
         os.system("rm {0}".format(all_gals_fname + "_pola.fits"))
+        os.system("rm {0}".format(all_gals_fname + "_Q.fits"))#a
+        os.system("rm {0}".format(all_gals_fname + "_U.fits"))#a
         
         logging.info("Creating empty image file, {0} ...".format(all_gals_fname))
 
@@ -988,10 +990,13 @@ def runSkyModel(config):
         )  # empy array for 1D maps
 
         fitsf = FITS(all_gals_fname, "rw")
-        # files storing the brightest object and the redshift of the brightest object
+        
+        # files storing the ancillary outputs
         fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
         fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
         fitsf_p = FITS(all_gals_fname + "_pola.fits", "rw")
+        fitsf_q = FITS(all_gals_fname + "_Q.fits", "rw")
+        fitsf_u = FITS(all_gals_fname + "_U.fits", "rw")
 
 
         # initialise files
@@ -1000,11 +1005,15 @@ def runSkyModel(config):
         fitsf_z.write(img2_1D, header=header_dict)
 
         fitsf_p.write(img2, header=header_dict)
+        fitsf_q.write(img2, header=header_dict)
+        fitsf_u.write(img2, header=header_dict)
         
         fitsf.close()
         fitsf_f.close()
         fitsf_z.close()
         fitsf_p.close()
+        fitsf_q.close()
+        fitsf_u.close()
         
         
 
@@ -1094,8 +1103,14 @@ def runSkyModel(config):
             ) / np.log10(base_freq / top_freq)
 
             if polarization == True:
-                cat["polafrac"] = cat_read["P" + base_freqname] * 1.0e-3 /cat["Total_flux"]  #polarization fraction   
-
+                cat["polafrac"] = cat_read["P" + base_freqname] * 1.0e-3 /cat["Total_flux"]  #polarization fraction
+                # here generate polarization angle EVPA=2*chi.
+                # convention it is 0 at North and anticlockwise
+                np.random.seed(mother_seed + 1093548)
+                evpa = np.random.uniform(
+                    low=0, high=180.0, size=len(cat)
+                )  
+                cat["EVPA"] = evpa
 
             
             # read the relevant quantities to implement flux cuts
@@ -1494,12 +1509,16 @@ def runSkyModel(config):
 
                         if (polarization == True):
                                 img3_pola= img3*cat_gal['polafrac']
+                                img3_q=img3_pola*np.cos(cat_gal['EVPA']/ 180. * np.pi)
+                                img3_u=img3_pola*np.sin(cat_gal['EVPA']/ 180. * np.pi)
                                 
                         # write the info for this object to files
                         fitsf = FITS(all_gals_fname, "rw")
                         fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
                         fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
                         fitsf_p = FITS(all_gals_fname + "_pola.fits", "rw")
+                        fitsf_q = FITS(all_gals_fname + "_Q.fits", "rw")
+                        fitsf_u = FITS(all_gals_fname + "_U.fits", "rw")
                         
                         # the redshift map contains the redshift of the brightest source on the LoS. This is judged by looking at the dummy map _maxflux and comparing if with the postage stamp. The z map is updated only where the postage stamp is brighter than what recorder in _maxflux
 
@@ -1546,6 +1565,22 @@ def runSkyModel(config):
                         
                             img3_pola += region
                             fitsf_p[0].write(img3_pola, blc0, blc1, blc2, trc0, trc1, trc2)
+
+
+                            region = fitsf_q[0][
+                                blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1
+                            ]
+                            
+                            img3_q += region
+                            fitsf_q[0].write(img3_q, blc0, blc1, blc2, trc0, trc1, trc2)
+
+
+
+                            region = fitsf_u[0][
+                                blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1
+                            ]
+                            img3_u += region
+                            fitsf_u[0].write(img3_u, blc0, blc1, blc2, trc0, trc1, trc2)
 
 
 
