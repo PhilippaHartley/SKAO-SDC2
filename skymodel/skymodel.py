@@ -149,7 +149,6 @@ def add_source_continuum(
 
     #            if source centre is in FoV:
 
-    print(ix, iy, n_x, n_y)
     if (ix > 0) and (iy > 0) and (ix <= n_x) and (iy <= n_y):
 
         print(
@@ -180,7 +179,6 @@ def add_source_continuum(
             cat_gal["corefrac"],
             cat_gal["ranid"],
         )
-        print("flux in/out:", cat_gal["Total_flux"])
 
         sub_img_shape = sub_img.shape
 
@@ -260,7 +258,6 @@ def add_source_continuum(
                 blc0, blc1, blc2 = blcs
                 trc0, trc1, trc2 = trcs
 
-            print("add source 11")
             logging.info(
                 "BLC, TRC: %f %f %f, %f %f %f ",
                 blc0,
@@ -281,16 +278,16 @@ def add_source_continuum(
             # read the recorded values for flux and redshift at the postage location
             flux_old = fitsf_f[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
             z_old = fitsf_z[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
-            print("add source 12")
+
             # initialise the new arrays
             flux_new = z_old * 0.0
-            print(flux_new.shape)
+
             flux_new[0] = img3[0]  # at the lowest frequency
             zvalue = cat_gal["z"]
 
             img_z = z_old
             img_f = flux_old
-            print("add source 13")
+
             # if (np.sum(flux_new)>np.sum(flux_old)):
             #    img_z=img_z*0.+zvalue
             #    img_f=flux_new
@@ -301,11 +298,11 @@ def add_source_continuum(
 
             fitsf_f[0].write(img_f, 0, blc1, blc2, 0, trc1, trc2)
             fitsf_z[0].write(img_z, 0, blc1, blc2, 0, trc1, trc2)
-            print("add source 14")
+
             # adding the source to the total map
             region = fitsf[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
             #             print(region.shape)
-            print(img3.shape)
+
             img3 += region
             fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
 
