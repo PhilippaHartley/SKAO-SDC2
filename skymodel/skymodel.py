@@ -1030,7 +1030,7 @@ def runSkyModel(config):
 
             # Load the catalogue
             # cat_file_name = config.get('pipeline', 'base_dir')+ config.get('pipeline', 'data_path')+config.get('field', 'catalogue')
-
+            polarization = False
             if config.getboolean("skymodel", "dopolarization") == True:
                 polarization = True
             
@@ -1159,10 +1159,12 @@ def runSkyModel(config):
                 "PA"
             ]  # this is the HI PA. rotate of 90 degs for AGN counterparts
 
+
             if HI_cross == True:
                 cat["MHI"] = cat_read[
                     "MHI"
                 ]  # this needed to select only Hi counterparts - for test purposes
+
                 # PA in continuum is the HI PA rotated by 90 degs
                 pa_copy = pa + 90.0
                 pa_copy[pa_copy > 359.0] = pa_copy[pa_copy > 359.0] - 360.0
@@ -1170,23 +1172,28 @@ def runSkyModel(config):
 
                 pa[rdcl > 3] = pa_copy[rdcl > 3]  # AGN PA 90degs from HI PA.
                 pa_1 = cat_read["PA_1"]
-
-                np.random.seed(mother_seed + 1)
-                pa_2 = np.random.uniform(
-                    low=0, high=359.0, size=len(cat)
-                )  # PA not defined for AGN, here generate random
-
                 pa[pa == -100] = pa_1[pa == -100]
-                pa[pa == -100] = pa_2[pa == -100]
-
-                # free
+                #free
                 pa_1 = 0
-                pa_2 = 0
                 pa_copy = 0
+
+            # PA not defined for AGN, here generate random
+            np.random.seed(mother_seed + 1)
+            pa_2 = np.random.uniform(
+                low=0, high=359.0, size=len(cat)
+            )  
+
+                
+            pa[pa == -100] = pa_2[pa == -100]
+
+            # free
+            pa_2 = 0
+                
 
             cat["PA"] = pa
             cat["PA"].unit = "deg"
 
+            
             # selects only continuum, AGNs
             #  cat = cat[(cat['RadioClass']>3)*(cat['RadioClass']!=-100)*(cat['Maj']<3600.)] #exclude too big - memory problem and not realistic
 
