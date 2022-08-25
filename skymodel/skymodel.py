@@ -56,7 +56,7 @@ from skymodel.skymodel_tools import setup_wcs
 tstart = time.time()
 
 # mother_seed=5820743 #seed for random number generation - fullcube
-mother_seed = 6879432  # seed for random number generation - smallcube1
+# mother_seed = 6879432  # seed for random number generation - smallcube1
 # mother_seed=7984532 #seed for random number generation -smallcube2
 
 
@@ -357,6 +357,7 @@ def runSkyModel(config):
     psf_min = config.getfloat("skymodel", "simple_psf_min") * galsim.arcsec
     psf_pa = config.getfloat("skymodel", "simple_psf_pa") * galsim.degrees
     pixel_scale = config.getfloat("skymodel", "pixel_scale")
+    mother_seed = config.getint("skymodel", "seed")
     pixel_scale_str = str(pixel_scale).split()[0]
     fov = config.getfloat("skymodel", "field_of_view")
     logging.info("FoV from ini file, arcmin: %f", fov)
@@ -1030,6 +1031,7 @@ def runSkyModel(config):
 
             # Load the catalogue
             # cat_file_name = config.get('pipeline', 'base_dir')+ config.get('pipeline', 'data_path')+config.get('field', 'catalogue')
+            
             polarization = False
             if config.getboolean("skymodel", "dopolarization") == True:
                 polarization = True
@@ -1102,6 +1104,7 @@ def runSkyModel(config):
                 cat["Total_flux"] / cat["flux2"]
             ) / np.log10(base_freq / top_freq)
 
+            
             if polarization == True:
                 cat["polafrac"] = cat_read["P" + base_freqname] * 1.0e-3 /cat["Total_flux"]  #polarization fraction
                 # here generate polarization angle EVPA=2*chi.
