@@ -27,7 +27,6 @@ import time
 
 import fitsio
 import galsim
-
 ###from matplotlib import pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -35,7 +34,6 @@ import numpy as np
 from astropy import units as uns
 from astropy import wcs as ast_wcs
 from astropy.coordinates import SkyCoord
-
 # from spectral_cube import SpectralCube
 from astropy.cosmology import LambdaCDM
 from astropy.io import fits as astfits
@@ -1051,15 +1049,15 @@ def runSkyModel(config):
             cat["Source_id"] = source_name_pos
 
             cat["RA"] = cat_read["longitude"]  # deg
+            ra_shift = np.copy(cat["RA"])
+            ra_shift[cat["RA"] > 180.0] -= 360.0
 
-            cat["ra_offset"] = cat["RA"] - ra_field_gs  # deg
+            cat["ra_offset"] = ra_shift - ra_field_gs  # deg
             cat["ra_offset"].unit = "deg"
 
             cat["DEC"] = cat_read["latitude"]  # deg
-
             cat["dec_offset"] = cat_read["latitude"] - dec_field_gs  # deg
             cat["dec_offset"].unit = "deg"
-
             dec_abs_radians = cat["DEC"] * galsim.degrees / galsim.radians
 
             z = cat_read["redshift"]
@@ -1265,21 +1263,6 @@ def runSkyModel(config):
 
             unresolveds = 0
 
-            # fov cut, put cos(dec) factor into ra offset
-            cosdec = np.cos(dec_field_gs * 2 * np.pi / 360)
-
-            # need to think about removing cosdec since higher-up sources are not filling plane
-            ra_offset_max = (1 / cosdec) * (
-                (fov / 60) / 2
-            )  # this is now a fraction of the written image size
-            dec_offset_max = (fov / 60) / 2  # convert fov to degrees
-
-            fov_cut = (abs(cat["ra_offset"]) < ra_offset_max) * (
-                abs(cat["dec_offset"]) < dec_offset_max
-            )
-
-            cat = cat[fov_cut]
-
             # Draw the galaxies onto the galsim image
             for i, cat_gal in enumerate(cat):
 
@@ -1338,7 +1321,6 @@ def runSkyModel(config):
                 # Create the sub-image for this galaxy
 
                 #            if source centre is in FoV:
-
                 if (ix > 0) and (iy > 0) and (ix <= n_x) and (iy <= n_y):
                     print(
                         "source",
@@ -1373,9 +1355,9 @@ def runSkyModel(config):
 
                     sub_img_size = sub_img.shape[1]
                     logging.info("postage stamp size %f", sub_img_size)
-                    print(i)
+
                     if 1:  # (sub_img_size <= 300.):    #this is for memory issues!!!
-                        print(i)
+
                         # have set cube to correct resolution in make_cube by reading pixel_scale from config
 
                         # works out the bounds for the postage stamp in the FoV image
