@@ -268,6 +268,7 @@ def make_img(
     if (radioclass == 6) and (Gaussize_in_pixels > 3.0):
         # SS resolvd AGN: use a postage stamp from a real image
         print("This is a postage stamp")
+       
         is_unresolved = 0
         prepared_cubes = np.loadtxt(datacube_dir + prepared_metadata, dtype="str")
 
@@ -280,7 +281,7 @@ def make_img(
         atlas_names = prepared_cubes[:, 0]
         atlas_ranid = prepared_cubes[:, 1].astype(np.float)
 
-        print("Selecting atlas source")
+   
         distance_to_sample = abs(atlas_ranid - ska_ranid)
 
         # print(ska_ranid)
@@ -297,21 +298,21 @@ def make_img(
         # cube_name = datacube_dir+prepared_dir+'{}cr_rotated_shrunk.fits'.format((i[9]))
 
         cube_name = prepared_cubes[distance_min_arg, 0]  # old format
-        print(cube_name)
+      
 
         # PH: temporary path fix
         cube_name = cube_name.split(
             "/home/a.bonaldi/data-cold-for-backup/data_challenges/inputs/AGN_library/"
         )[1]
 
-        print("cube_name: ", cube_name)
+       
 
         cube_fits = fits.open(cube_name)
         cube = cube_fits[0].data
         cube_summed_flux = np.sum(cube)
 
         logging.info("Atlas sample shape: %s", cube.shape)
-
+       
         if doplot:
             plt.scatter(np.arange(len(cube_summed_spectrum)), cube_summed_spectrum)
             plt.show()
@@ -386,7 +387,6 @@ def make_img(
                 1.0 / zoom_factor / 2.0
             )  # pixels in original size to correspond to 0.5 pixel in the new image
 
-            print("padding on both sizes of", npad)
             cube = np.pad(
                 cube, ((npad, npad), (npad, npad)), "constant", constant_values=(0)
             )
@@ -410,12 +410,11 @@ def make_img(
             np.square(psf_maj / ska_dx) - np.square(atlas_psf * zoom_factor / ska_dx)
         )  # additional smoothing PSF in units of the map pixel
 
-        print("smoothing to be done in pixels", psf_smooth)
+      
         if psf_smooth > 0.0:
 
             atlas_smoo = psf_smooth / sigma2FWHM
-            print("sigma smoothing done on reduced beam", atlas_smoo)
-            print("instead of", Gaus_sigma)
+          
             atlas_kernel = Gaussian2DKernel(x_stddev=atlas_smoo)
             size_a = cube2.shape[0]
             size_b = cube2.shape[1]
@@ -442,7 +441,7 @@ def make_img(
 
     if smoothing_done == 0:
         # convolution done on all sources - resolved and unresolved - check
-        print("smoothing done on image reso")
+    
         size_a = cube2.shape[0]
         size_b = cube2.shape[1]
         padding_a = int(np.ceil(size_a / 2.0))
@@ -481,7 +480,7 @@ def make_img(
         )  # flux mormalization for frequency freq
         cube2_allfreqs[ff] = cube2 * norm
         # print(norm,freqs[ff],np.sum(cube2_allfreqs[ff]),ska_alpha)
-    print("postage done")
+   
 
     if doplot:
         plt.subplot(121)
@@ -521,7 +520,7 @@ def make_img(
     # print(np.sum(cube6[0]))
     # print(np.sum(cube6[1]))
     ### exit()
-    print("shape:::::::::: ", cube6.shape, cube6.nbytes)
+  
     #  cube6 = np.ones((5,100,100))
     return (
         cube6,

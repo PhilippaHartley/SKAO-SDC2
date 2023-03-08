@@ -109,7 +109,7 @@ def add_source_continuum(
     logging.root.setLevel(logging.DEBUG)
     mainlog.info("result%s" % i)
     """
-    print(i)
+   
 
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
@@ -151,16 +151,7 @@ def add_source_continuum(
 
     if (ix > 0) and (iy > 0) and (ix <= n_x) and (iy <= n_y):
 
-        print(
-            "source",
-            cat_gal["PA"],
-            cat_gal["Total_flux"],
-            cat_gal["Maj"],
-            cat_gal["Min"],
-            cat_gal["spectral_index"],
-            ix,
-            iy,
-        )
+  
 
         #### get the postage for the source. It can be AGN from library, Gaussian lobe and Gaussian core, Sersic of simple Gaussian
 
@@ -237,7 +228,7 @@ def add_source_continuum(
                 if coord < 0:
                     overlap = True
                     logging.info("Subcube is overlapping the edge: cropping to fit")
-                    print("Subcube is overlapping the edge: cropping to fit")
+                 
                     break
 
             if overlap:
@@ -249,12 +240,12 @@ def add_source_continuum(
 
                 np.putmask(end_list, top_excess >= 0, img3.shape)
                 end0, end1, end2 = end_list
-                print(start0, start1, start2, end0, end1, end2)
+        
                 img3 = img3[start0:end0, start1:end1, start2:end2]
 
                 np.putmask(blcs, bottom_excess < 0, 0)
                 np.putmask(trcs, top_excess < 0, arr_dims - 1)
-                print(arr_dims)
+        
                 blc0, blc1, blc2 = blcs
                 trc0, trc1, trc2 = trcs
 
@@ -328,7 +319,7 @@ def add_source_continuum(
         f.writelines(a)
     os.system("rm log%d.log" % i)
     """
-    print("add source 16", i)
+ 
     return (i, atlas_source, flux, unresolved)
 
 
@@ -380,15 +371,16 @@ def add_source(
     arr_dims,
     all_gals_fname,
     cat,
-    root,
-):
 
+):
+    '''
     print("making source")
     mainlog = logging.getLogger("main%d" % i)
     h = logging.FileHandler("log%d.log" % i)
     mainlog.addHandler(h)
     logging.root.setLevel(logging.DEBUG)
     mainlog.info("result%s" % i)
+    '''
 
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
@@ -533,7 +525,9 @@ def add_source(
     fitsf.close()
     logging.info("")
     print(i)
+    '''
     mainlog.info("done_make_cube%s" % i)
+   
     with open("log%d.log" % i, "r") as f:
         a = f.readlines()
         print(a)
@@ -541,6 +535,7 @@ def add_source(
     with open("all_log.txt", "a") as f:
         f.writelines(a)
     os.system("rm log%d.log" % i)
+    '''
 
     return (
         i,
@@ -947,11 +942,13 @@ def runSkyModel(config):
             multiprocessing.set_start_method("fork")
             pool = multiprocessing.Pool(n_cores)
             for i, cat_gal in enumerate(cat):
+                '''
                 mainlog = logging.getLogger("main%d" % i)
                 h = logging.FileHandler("log%d.log" % i)
                 mainlog.addHandler(h)
                 logging.root.setLevel(logging.DEBUG)
                 mainlog.info("test%s" % i)
+                '''
 
                 pool.apply_async(
                     add_source,
@@ -967,7 +964,7 @@ def runSkyModel(config):
                         arr_dims,
                         all_gals_fname,
                         cat,
-                        mainlog,
+                     
                     ),
                     callback=log_result,
                 )
@@ -978,6 +975,7 @@ def runSkyModel(config):
             print(cat["Atlas_source"][i])
 
         atlas_sources = cat["Atlas_source"]
+        print ('atlas_sources', atlas_sources)
 
         filled_rows = np.argwhere(atlas_sources != "0.0")[
             :, 0
@@ -1204,7 +1202,7 @@ def runSkyModel(config):
 
         n_x = blc0  # naxis1 needed to decide whether to process source
         n_y = blc1  # naxis2 needed to decide whether to process source
-        print(n_x, n_y)
+    
         # ANNA: this feature seemed to be not present in Philippa's code. If that's the case, an image is prepared for every source in the catalogue and discarded at the end if out of FoV. For efficiency, if can be a good idea to check that beforehand for the centre of the source and process only sources whose centre is within FoV.
 
         # here we create 4 maps:
@@ -1252,8 +1250,7 @@ def runSkyModel(config):
             HI_cross = False  # assume that the catalogue is con cross-matched with HI
             cat_file_name = config.get("field", "catalogue")
 
-            outf = cat_file_name + "_pos_offsets"
-            f = open(outf, "w+")
+          
 
             logging.info("Loading catalogue from {0} ...".format(cat_file_name))
 
@@ -1535,9 +1532,10 @@ def runSkyModel(config):
                 logging.root.setLevel(logging.DEBUG)
                 mainlog.info("test%s" % i)
                 """
-                if i == 10000:
+             
+                #if i == 10000:
 
-                    exit()
+                #    exit()
 
                 pool.apply_async(
                     add_source_continuum,
