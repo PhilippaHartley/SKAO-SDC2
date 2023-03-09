@@ -32,7 +32,7 @@ def get_spectral_sampling(config, rest_freq, ref_freq, dnu):
 def setup_wcs(config, ndim, cosmology=False, nu_axis=False):
 
     pixel_scale = config.getfloat("skymodel", "pixel_scale") * galsim.arcsec
-    fov = config.getfloat("skymodel", "field_of_view")
+    fov = config.getfloat("field", "field_of_view")
 
     fov, image_size = get_image_size((fov), pixel_scale / galsim.arcsec)
 
@@ -62,10 +62,10 @@ def setup_wcs(config, ndim, cosmology=False, nu_axis=False):
     msname = config.get("pipeline", "data_path") + msname
     imagename = msname + ".image"
 
-    # channel_width = bw / (n_chan*n_ifs)
-    # if_width = bw / n_ifs
+  
 
     w = wcs.WCS(naxis=ndim)
+
     if ndim == 4:
         if nu_axis:
             """

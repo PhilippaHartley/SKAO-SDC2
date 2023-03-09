@@ -14,7 +14,6 @@ import time
 import galsim
 import numpy as np
 from astropy import units as uns
-from astropy import wcs as ast_wcs
 from astropy.coordinates import SkyCoord
 from astropy.cosmology import LambdaCDM
 from astropy.io import fits as astfits
@@ -31,7 +30,7 @@ from skymodel.skymodel_tools import setup_wcs
 tstart = time.time()
 
 # mother_seed=5820743 #seed for random number generation - fullcube
-mother_seed = 6879432  # seed for random number generation - smallcube1 (dev)
+# mother_seed = 6879432  # seed for random number generation - smallcube1 (dev)
 # mother_seed=7984532 #seed for random number generation -smallcube2 (eval)
 
 arcsectorad = (1.0 * uns.arcsec).to(uns.rad).value
@@ -49,18 +48,11 @@ def retrieve_flux():
 def log_result(result):
 
     global cat
-
-
     (i, atlas_source, flux, unresolved) = result
-    print (i)
     cat["id"][i] = i
     cat["Atlas_source"][i] = atlas_source
     cat["New_flux"][i] = flux
     cat["Unresolved"][i] = unresolved
-    print (i)
-
-
-
 
 def add_source_continuum(
     i,
@@ -87,7 +79,7 @@ def add_source_continuum(
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
     )
-
+ 
     x, y = w_twod.wcs_world2pix(
         cat_gal["RA"],
         cat_gal["DEC"],
@@ -273,10 +265,9 @@ def runSkyModel(config):
     H = config.getfloat("cosmology", "H")
     M = config.getfloat("cosmology", "M")
     L = config.getfloat("cosmology", "L")
-    c = config.getfloat("cosmology", "c")
-    G = config.getfloat("cosmology", "G")
-
     cosmo = LambdaCDM(H0=H, Om0=M, Ode0=L)
+
+    mother_seed = int(config.get("pipeline", "mother_seed"))
 
     data_path_large_files = (
         config.get("pipeline", "data_path_large_files")
@@ -297,7 +288,7 @@ def runSkyModel(config):
     psf_pa = config.getfloat("skymodel", "simple_psf_pa") * galsim.degrees
     pixel_scale = config.getfloat("skymodel", "pixel_scale")
     pixel_scale_str = str(pixel_scale).split()[0]
-    fov = config.getfloat("skymodel", "field_of_view")
+    fov = config.getfloat("field", "field_of_view")
     logging.info("FoV from ini file, arcmin: %f", fov)
 
     # set sky coordinates
@@ -306,21 +297,15 @@ def runSkyModel(config):
     # convert to range +/- 180 to enable cutoffs later
     if ra_field_gs > 180.0:
         ra_field_gs -= 360.0
-
     dec_field_gs = config.getfloat("field", "field_dec")
     global cat
     
-    # continuum specific
-    # set spectral properties
-    HI_line = config.getfloat("observation", "rest_freq")
+    # set spectral properties for continuum
     base_freq = config.getfloat("observation", "lowest_frequency")  # *1.e6 #Hz
     base_freqname = config.get("observation", "lowest_frequency")
     top_freq = config.getfloat("observation", "highest_frequency")  # *1.e6 #Hz
     top_freqname = config.get("observation", "highest_frequency")
-
-    bw = top_freq - base_freq
     fov, image_size = tools.get_image_size(fov, pixel_scale)
-    print(fov, pixel_scale, image_size)
 
     logging.info("Image_size, power of two, pixels: %f", image_size)
     logging.info("FoV reduced to a power of two, arcmin: %f", fov)
@@ -334,14 +319,10 @@ def runSkyModel(config):
 
     dnu = config.getfloat("observation", "channel_width")
     nfreqs = int((top_freq - base_freq) / dnu) + 1
-    print("nfreqs", nfreqs)
     freqs = np.zeros(nfreqs).astype(np.float32)
-    print(freqs.shape)
-
     freq = base_freq
     for ff in range(nfreqs):
         freqs[ff] = freq
-        print(freq)
         freq = freq + dnu
 
     n_chan = nfreqs
@@ -443,7 +424,7 @@ def runSkyModel(config):
     # files storing the brightest object and the redshift of the brightest object
     fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
     fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
-
+    
     # initialise files
     fitsf.write(img2, header=header_dict)
     fitsf_f.write(img2_1D, header=header_dict)
@@ -453,13 +434,15 @@ def runSkyModel(config):
     fitsf_z.close()
     fitsf = FITS(all_gals_fname, "rw")
     fitsf.close()
+    
     cr_x, cr_y = w_twod.wcs_world2pix(
         ra_field_gs,
         dec_field_gs,
         1,
     )
+   
     logging.info("Check world2pix crpix1, crpix2: %f %f", cr_x, cr_y)
-
+    
     # Load the catalogue
     HI_cross = False  # assume that the catalogue is con cross-matched with HI
     cat_file_name = config.get("field", "catalogue")
@@ -494,13 +477,11 @@ def runSkyModel(config):
     cat["DEC"] = cat_read["latitude"]  # deg
     cat["dec_offset"] = cat_read["latitude"] - dec_field_gs  # deg
     cat["dec_offset"].unit = "deg"
-    dec_abs_radians = cat["DEC"] * galsim.degrees / galsim.radians
     z = cat_read["redshift"]
     if HI_cross == True:
         z_1 = cat_read["redshift_1"]
         z[z == -100] = z_1[z == -100]
     cat["z"] = z
-    cat["z"].unit = "none"
 
     # each source is approximated as a power law within the cube. A spectral index is computed between the lowest and highest specified frequencies.
     # This approximation is OK for channels within the same band.
@@ -515,15 +496,14 @@ def runSkyModel(config):
     ) / np.log10(base_freq / top_freq)
 
     # read the relevant quantities to implement flux cuts
-    if config.getboolean("skymodel", "highfluxcut") == True:
-        highflux = config.getfloat("skymodel", "highfluxcut_value")
-        flux_sel_freq = config.get("skymodel", "fluxcut_frequency")
-        print(highflux, flux_sel_freq)
+    if config.getboolean("continuum", "highfluxcut") == True:
+        highflux = config.getfloat("continuum", "highfluxcut_value")
+        flux_sel_freq = config.get("continuum", "fluxcut_frequency")
         cat["flux_selection"] = cat_read["I" + flux_sel_freq] * 1.0e-3  # Jy
 
-    if config.getboolean("skymodel", "lowfluxcut") == True:
-        lowflux = config.getfloat("skymodel", "lowfluxcut_value")
-        flux_sel_freq = config.get("skymodel", "fluxcut_frequency")
+    if config.getboolean("continuum", "lowfluxcut") == True:
+        lowflux = config.getfloat("continuum", "lowfluxcut_value")
+        flux_sel_freq = config.get("continuum", "fluxcut_frequency")
         cat["flux_selection"] = cat_read["I" + flux_sel_freq] * 1.0e-3  # Jy
 
     maj = cat_read["size"]  # arcsec
@@ -578,14 +558,14 @@ def runSkyModel(config):
     # exclude too big; memory problem and not realistic
     cat = cat[(cat["RadioClass"] != -100) * (cat["Maj"] < 200.0)]
 
-    if config.getboolean("skymodel", "highfluxcut") == True:
+    if config.getboolean("continuum", "highfluxcut") == True:
         print("applying high flux cut")
         len_old = len(cat)
         cat = cat[(cat["flux_selection"] < highflux)]
         print("number of sources excluded")
         print(len_old - len(cat))
 
-    if config.getboolean("skymodel", "lowfluxcut") == True:
+    if config.getboolean("continuum", "lowfluxcut") == True:
         print("applying low flux cut")
         len_old = len(cat)
         cat = cat[(cat["flux_selection"] > lowflux)]
@@ -594,7 +574,6 @@ def runSkyModel(config):
 
     # define additional source attributes not contained in the TRECS cat
     cat["Atlas_source"] = np.zeros(len(cat)).astype(np.str)
-
     cat["Unresolved"] = np.zeros(len(cat)).astype(np.str)
     cat["New_flux"] = np.zeros(len(cat)).astype(np.str)
     np.random.seed(mother_seed + 100)
@@ -612,9 +591,9 @@ def runSkyModel(config):
     ranid[cat["Rs"] > 0.5] = ranid[cat["Rs"] > 0.5] + 10
     cat["ranid"] = ranid
 
-    if config.get("skymodel", "sizescale") == "constant":
+    if config.get("continuum", "sizescale") == "constant":
         cat["Maj"] = np.ones_like(cat["Maj"]) * config.getfloat(
-            "skymodel", "sizescale_constant_value"
+            "continuum", "sizescale_constant_value"
         )
         scale_radius_to_hlr = 1.67834699
         cat["Maj_halflight"] = cat["Maj"] * scale_radius_to_hlr
@@ -628,28 +607,28 @@ def runSkyModel(config):
     nobj = len(cat)
 
     # flux range
-    if config.get("skymodel", "fluxscale") == "constant":
+    if config.get("continuum", "fluxscale") == "constant":
         cat["Total_flux"] = np.ones_like(cat["Total_flux"]) * config.getfloat(
-            "skymodel", "fluxscale_constant_value"
+            "continuum", "fluxscale_constant_value"
         )
         cat["Peak_flux"] = cat["Total_flux"] / (2.0 * cat["Maj"] * arcsectorad)
 
     # scale flux
     cat["Total_flux"] = cat["Total_flux"] * config.getfloat(
-        "skymodel", "flux_factor"
+        "continuum", "flux_factor"
     )
     cat["Peak_flux"] = cat["Peak_flux"] * config.getfloat(
-        "skymodel", "flux_factor"
+        "continuum", "flux_factor"
     )
 
     # scale size
-    cat["Maj"] = cat["Maj"] * config.getfloat("skymodel", "sizefactor")
+    cat["Maj"] = cat["Maj"] * config.getfloat("continuum", "sizefactor")
     cat["Maj_halflight"] = cat["Maj_halflight"] * config.getfloat(
-        "skymodel", "sizefactor"
+        "continuum", "sizefactor"
     )
-    cat["Min"] = cat["Min"] * config.getfloat("skymodel", "sizefactor")
+    cat["Min"] = cat["Min"] * config.getfloat("continuum", "sizefactor")
     cat["Min_halflight"] = cat["Min_halflight"] * config.getfloat(
-        "skymodel", "sizefactor"
+        "continuum", "sizefactor"
     )
 
 
@@ -715,11 +694,18 @@ def runSkyModel(config):
 
     pool.close()
     pool.join()
-    print (cat)
-    print (cat["Atlas_source"])  
-    print  (cat["ranid"])
-    print (cat["id"])    
-    print(time.time() - tstart)
+   
+    # check all sources have been created and added
+    filled_rows = np.argwhere(cat["Atlas_source"] != "0.0")[
+        :, 0
+    ]  
+    len1 = len(cat)
+    cat = cat[filled_rows]
+    len2 = len(cat)
+    if len1 != len2:
+        print("warning: some sources were not added")
+        print('input sources', len1,' vs output sources', len2)
+        exit()
 
     # write out continuum catalogue
     truthcat_name = (
@@ -728,12 +714,11 @@ def runSkyModel(config):
     logging.info("Writing truth catalogue to: {0} ...".format(truthcat_name))
     cat.write(truthcat_name, format="fits", overwrite=True)
 
-    flux = astfits.getdata(all_gals_fname) 
-    summed_line_flux = np.sum(flux, axis=0)
-    print (np.sum(summed_line_flux))
-    
+    # quick check
+    print ('summed cube:', np.sum(astfits.getdata(all_gals_fname)))
     tend = time.time()
     logging.info("...done in {0} seconds.".format(tend - tstart))
+    print('done in %.3f seconds'%(tend - tstart))
 
 
 if __name__ == "__main__":
@@ -741,4 +726,4 @@ if __name__ == "__main__":
     config = ConfigParser.ConfigParser()
     config.read(sys.argv[1])
 
-    runSkyModel(config)
+
