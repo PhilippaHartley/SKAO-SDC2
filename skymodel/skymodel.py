@@ -99,8 +99,6 @@ def add_source_continuum(
     all_gals_fname,
     base_freq,
     freqs,
-    n_x,
-    n_y,
 ):
     """
     mainlog = logging.getLogger("main%d" % i)
@@ -128,198 +126,144 @@ def add_source_continuum(
     # logging.info('freq, z: %f %f',  cat_gal['central_freq'], cat_gal['z'])
     logging.info("x, y,: %f %f ", x, y)
 
-    # ! determine whether need this offset bit - is it so that it's not all shifted by 0.5 pix??
-    # Account for the fractional part of the position:
-    ix = int(np.floor(x + 0.5))
-    iy = int(np.floor(y + 0.5))
-
-    # PH: it looks like these are not needed?
-    # ix_arr[i] = ix
-    # iy_arr[i] = iy
-
-    # iv = int(np.floor(v+0.5))
-    # iv_arr[i] = iv
-
-    offset = galsim.PositionD(x - ix, y - iy)  # AB: original
-    # offset is used by galsim
-
     logging.info("Continuum size from cat:  %f", cat_gal["Maj"])
 
-    # Create the sub-image for this galaxy
+    # get the postage for the source. It can be AGN from library, Gaussian lobe and Gaussian core, Sersic of simple Gaussian
+    sub_img, atlas_source, unresolved, flux = make_img(
+        config,
+        cat_gal["Total_flux"],
+        cat_gal["spectral_index"],
+        base_freq,
+        freqs,
+        cat_gal["Maj"],
+        cat_gal["Min"],
+        cat_gal["PA"],
+        float(pixel_scale_str),
+        psf_maj_arcsec,
+        cat_gal["RadioClass"],
+        cat_gal["corefrac"],
+        cat_gal["ranid"],
+    )
 
-    #            if source centre is in FoV:
+    sub_img_shape = sub_img.shape
+    sub_img_size = sub_img.shape[1]
+    logging.info("postage stamp size %f", sub_img_size)
 
-    if (ix > 0) and (iy > 0) and (ix <= n_x) and (iy <= n_y):
+    # works out the bounds for the postage stamp in the FoV image
+    l_bounds = np.array([0, y, x]) - np.array(
+        [0, (sub_img.shape[1] / 2), (sub_img.shape[2] / 2)]
+    )
+    u_bounds = np.array([len(freqs), y, x]) + np.array(
+        [
+            0,
+            sub_img_shape[1] - (sub_img.shape[1] / 2),
+            sub_img_shape[2] - (sub_img.shape[2] / 2),
+        ]
+    )
 
-  
+    logging.info("Lower bounds, upper bounds: %s, %s", l_bounds, u_bounds)
 
-        #### get the postage for the source. It can be AGN from library, Gaussian lobe and Gaussian core, Sersic of simple Gaussian
+    l_bounds = np.floor(l_bounds).astype(np.int)
+    u_bounds = np.floor(u_bounds).astype(np.int)
 
-        sub_img, atlas_source, unresolved, flux = make_img(
-            config,
-            cat_gal["Total_flux"],
-            cat_gal["spectral_index"],
-            base_freq,
-            freqs,
-            cat_gal["Maj"],
-            cat_gal["Min"],
-            cat_gal["PA"],
-            float(pixel_scale_str),
-            psf_maj_arcsec,
-            cat_gal["RadioClass"],
-            cat_gal["corefrac"],
-            cat_gal["ranid"],
-        )
+    logging.info(
+        "Lower bounds, upper bounds, int: %s, %s",
+        l_bounds,
+        u_bounds,
+    )
+    logging.info("Subcube shape: %s", sub_img.shape)
 
-        sub_img_shape = sub_img.shape
+    # add it to the large cube
+    img3 = sub_img
+    blc0 = l_bounds[0]
+    blc1 = l_bounds[1]
+    blc2 = l_bounds[2]
+    trc0 = u_bounds[0] - 1
+    trc1 = u_bounds[1] - 1
+    trc2 = u_bounds[2] - 1
 
-        sub_img_size = sub_img.shape[1]
-        logging.info("postage stamp size %f", sub_img_size)
+    # the top bounds are all -1 the true values, since the large cube is added using Fortran indexing
+    trcs = np.array([trc0, trc1, trc2])
+    blcs = np.array([blc0, blc1, blc2])
 
-        if 1:  # (sub_img_size <= 300.):    #this is for memory issues!!!
-            # works out the bounds for the postage stamp in the FoV image
-            l_bounds = np.array([0, y, x]) - np.array(
-                [0, (sub_img.shape[1] / 2), (sub_img.shape[2] / 2)]
-            )
-            u_bounds = np.array([len(freqs), y, x]) + np.array(
-                [
-                    0,
-                    sub_img_shape[1] - (sub_img.shape[1] / 2),
-                    sub_img_shape[2] - (sub_img.shape[2] / 2),
-                ]
-            )
+    # pixels from the image to top coordinates of field
+    top_excess = arr_dims - (
+        trcs + 1
+    )  
+    bottom_excess = blcs
+    excess = np.hstack((bottom_excess, top_excess))
+    # initialise indicator to say whether the galaxy overlaps an edge
+    overlap = False  
+    # the galaxy is clipped if it overlaps an edge
+    for coord in excess:
+        if coord < 0:
+            overlap = True
+            logging.info("Subcube is overlapping the edge: cropping to fit")            
+            break
 
-            logging.info("Lower bounds, upper bounds: %s, %s", l_bounds, u_bounds)
+    if overlap:
+        start_list = np.copy(bottom_excess)
+        end_list = np.copy(top_excess)
+        np.putmask(start_list, bottom_excess < 0, (-bottom_excess))
+        np.putmask(start_list, bottom_excess >= 0, 0)
+        start0, start1, start2 = start_list
+        np.putmask(end_list, top_excess >= 0, img3.shape)
+        end0, end1, end2 = end_list
+        img3 = img3[start0:end0, start1:end1, start2:end2]
+        np.putmask(blcs, bottom_excess < 0, 0)
+        np.putmask(trcs, top_excess < 0, arr_dims - 1)
+        blc0, blc1, blc2 = blcs
+        trc0, trc1, trc2 = trcs
 
-            l_bounds = np.floor(l_bounds).astype(np.int)
-            u_bounds = np.floor(u_bounds).astype(np.int)
+    logging.info(
+        "BLC, TRC: %f %f %f, %f %f %f ",
+        blc0,
+        blc1,
+        blc2,
+        trc0,
+        trc1,
+        trc2,
+    )
 
-            logging.info(
-                "Lower bounds, upper bounds, int: %s, %s",
-                l_bounds,
-                u_bounds,
-            )
-            logging.info("Subcube shape: %s", sub_img.shape)
+    # write the info for this object to files
+    fitsf = FITS(all_gals_fname, "rw")
+    fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
+    fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
 
-            #### add it to the large cube:
+    # the redshift map contains the redshift of the brightest source on the LoS. 
+    # this is judged by looking at the dummy map _maxflux and comparing if with the postage stamp. 
+    # the z map is updated only where the postage stamp is brighter than what recorder in _maxflux
 
-            img3 = sub_img
-            blc0 = l_bounds[0]
-            blc1 = l_bounds[1]
-            blc2 = l_bounds[2]
-            trc0 = u_bounds[0] - 1
-            trc1 = u_bounds[1] - 1
-            trc2 = u_bounds[2] - 1
+    # read the recorded values for flux and redshift at the postage location
+    flux_old = fitsf_f[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+    z_old = fitsf_z[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
 
-            trcs = np.array([trc0, trc1, trc2])
+    # initialise the new arrays
+    flux_new = z_old * 0.0
+    flux_new[0] = img3[0]  # at the lowest frequency
+    zvalue = cat_gal["z"]
+    img_z = z_old
+    img_f = flux_old
 
-            blcs = np.array([blc0, blc1, blc2])
-            # the top bounds are all -1 the true values, since the large cube is added using Fortran indexing
+    # update only where postage brighter than record
+    img_z[flux_new > flux_old] = zvalue
+    img_f[flux_new > flux_old] = flux_new[flux_new > flux_old]
 
-            top_excess = arr_dims - (
-                trcs + 1
-            )  # pixels from the image to top coordinates of field
-            bottom_excess = blcs
-            excess = np.hstack((bottom_excess, top_excess))
-            overlap = False  # initialise indicator to say if the galaxy clips the edges
-            #  address the below
-            ### the galaxy is written only if it fits in its entirety - not clipped. This is possibly not desiderable as AGN can be big
-            for coord in excess:
-                if coord < 0:
-                    overlap = True
-                    logging.info("Subcube is overlapping the edge: cropping to fit")
-                 
-                    break
+    fitsf_f[0].write(img_f, 0, blc1, blc2, 0, trc1, trc2)
+    fitsf_z[0].write(img_z, 0, blc1, blc2, 0, trc1, trc2)
 
-            if overlap:
-                start_list = np.copy(bottom_excess)
-                end_list = np.copy(top_excess)
-                np.putmask(start_list, bottom_excess < 0, (-bottom_excess))
-                np.putmask(start_list, bottom_excess >= 0, 0)
-                start0, start1, start2 = start_list
+    # adding the source to the total map
+    # if running in parallel, this step can go out of synch
+    region = fitsf[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+    img3 += region
+    fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
 
-                np.putmask(end_list, top_excess >= 0, img3.shape)
-                end0, end1, end2 = end_list
-        
-                img3 = img3[start0:end0, start1:end1, start2:end2]
+    t_source = time.time() - tstart
 
-                np.putmask(blcs, bottom_excess < 0, 0)
-                np.putmask(trcs, top_excess < 0, arr_dims - 1)
-        
-                blc0, blc1, blc2 = blcs
-                trc0, trc1, trc2 = trcs
+    fitsf.close()
 
-            logging.info(
-                "BLC, TRC: %f %f %f, %f %f %f ",
-                blc0,
-                blc1,
-                blc2,
-                trc0,
-                trc1,
-                trc2,
-            )
+    logging.info("")
 
-            # write the info for this object to files
-            fitsf = FITS(all_gals_fname, "rw")
-            fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
-            fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
-
-            # the redshift map contains the redshift of the brightest source on the LoS. This is judged by looking at the dummy map _maxflux and comparing if with the postage stamp. The z map is updated only where the postage stamp is brighter than what recorder in _maxflux
-
-            # read the recorded values for flux and redshift at the postage location
-            flux_old = fitsf_f[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
-            z_old = fitsf_z[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
-
-            # initialise the new arrays
-            flux_new = z_old * 0.0
-
-            flux_new[0] = img3[0]  # at the lowest frequency
-            zvalue = cat_gal["z"]
-
-            img_z = z_old
-            img_f = flux_old
-
-            # if (np.sum(flux_new)>np.sum(flux_old)):
-            #    img_z=img_z*0.+zvalue
-            #    img_f=flux_new
-
-            # update only where postage brighter than record
-            img_z[flux_new > flux_old] = zvalue
-            img_f[flux_new > flux_old] = flux_new[flux_new > flux_old]
-
-            fitsf_f[0].write(img_f, 0, blc1, blc2, 0, trc1, trc2)
-            fitsf_z[0].write(img_z, 0, blc1, blc2, 0, trc1, trc2)
-
-            # adding the source to the total map
-            region = fitsf[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
-            #             print(region.shape)
-
-            img3 += region
-            fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
-
-            t_source = time.time() - tstart
-
-            fitsf.close()
-
-            logging.info("")
-        """
-        mainlog.info("done_make_cube%s" % i)
-        print("add source 16", i)
-        """
-    else:
-        atlas_source = 0
-        flux = 0
-        unresolved = 0
-    """
-    with open("log%d.log" % i, "r") as f:
-        a = f.readlines()
-        print(a)
-
-    with open("all_log.txt", "a") as f:
-        f.writelines(a)
-    os.system("rm log%d.log" % i)
-    """
- 
     return (i, atlas_source, flux, unresolved)
 
 
@@ -1179,31 +1123,12 @@ def runSkyModel(config):
             header_dict[key] = header_fourd[key]
             logging.info("%s = %s" % (key, header_dict[key]))
 
-        ###ANNA: qui metterre if per scegliere se spectral o continuum
-        #    for key in header_spectral:
-
-        #        header_dict[key] = header_spectral[key]
-        #        logging.info('%s = %s'%(key,header_dict[key]))
-
-        # img=np.zeros((10,10,10)).astype(np.float32)
-
-        # fitsf = FITS(all_gals_fname,'rw')
-        # fitsf.write(img, header = header_dict)
-
-        # exit()
         # start pixel coords need to be supplied in reverse order when expanding - fiddly but works
         # fitsio code changed to reverse axes ordering when writing (going from C to fortran order)
 
         blc0 = image_size - 1  # -1 since the large cube is added using Fortran indexing
         blc1 = image_size - 1
         blc2 = n_chan - 1
-
-        print("array dimensions", blc0, blc1, blc2)
-
-        n_x = blc0  # naxis1 needed to decide whether to process source
-        n_y = blc1  # naxis2 needed to decide whether to process source
-    
-        # ANNA: this feature seemed to be not present in Philippa's code. If that's the case, an image is prepared for every source in the catalogue and discarded at the end if out of FoV. For efficiency, if can be a good idea to check that beforehand for the centre of the source and process only sources whose centre is within FoV.
 
         # here we create 4 maps:
         # 1) continuum cube with all sources for the chosen continuum channels
@@ -1258,7 +1183,7 @@ def runSkyModel(config):
 
             cat_read = Table.read(cat_file_name)  # remove ascii
             keywords = cat_read.colnames
-
+        
             if "M_HI" in keywords:
                 HI_cross = True
 
@@ -1389,20 +1314,12 @@ def runSkyModel(config):
             cat["PA"] = pa
             cat["PA"].unit = "deg"
 
-            # selects only continuum, AGNs
-            #  cat = cat[(cat['RadioClass']>3)*(cat['RadioClass']!=-100)*(cat['Maj']<3600.)] #exclude too big - memory problem and not realistic
-
-            # cat = cat[(cat['RadioClass']<4)*(Cat['RadioClass']!=-100)] #sfg
-            # cat = cat[(cat['RadioClass']<4)*(cat['RadioClass']!=-100)*(cat['Maj']>10.)] #resolved sfg
-
             # select continuum sources
             cat = cat[(cat["RadioClass"] != -100) * (cat["Maj"] < 200.0)]
+   
+         
             # exclude too big - memory problem and not realistic] #select only continuum
-            # print(len(cat))
-            # cat = cat[(cat['MHI']!=-100.)] # only to get continuum only #change change
-            # cat = cat[(cat['RadioClass']<4)] # only to get SFG only #change change
-            # print(len(cat))
-            #  exit()
+
 
             if config.getboolean("skymodel", "highfluxcut") == True:
                 print("applying high flux cut")
@@ -1430,11 +1347,14 @@ def runSkyModel(config):
             corefrac = np.random.normal(
                 loc=0.75, scale=0.1, size=len(cat)
             )  # initialise core fraction. Steep-spectrum AGN dont use it as it is determined by the postage stamp.
+            print (corefrac)
             cat["corefrac"] = corefrac
             np.random.seed(mother_seed + 1000)
 
             # this random number is used later to associate sources to postage stamps
             ranid = np.random.uniform(low=0, high=1, size=len(cat))
+            print (ranid)
+           
 
             ranid[cat["Rs"] <= 0.5] = ranid[cat["Rs"] <= 0.5] - 10
             ranid[cat["Rs"] > 0.5] = ranid[cat["Rs"] > 0.5] + 10
@@ -1485,10 +1405,6 @@ def runSkyModel(config):
                 "skymodel", "sizefactor"
             )
 
-            # ix_arr = np.ones(nobj)
-            # iy_arr = np.ones(nobj)
-            # iv_arr = np.ones(nobj)
-
             print("going into loop")
             multiprocessing.set_start_method("fork")
             pool = multiprocessing.Pool(n_cores)
@@ -1507,6 +1423,10 @@ def runSkyModel(config):
             )
 
             cat = cat[fov_cut]
+
+
+            print (cat["Maj"][cat["Maj"] > 200.0])
+        
             print(cat["DEC"])
             cat = cat[
                 "RA",
@@ -1533,9 +1453,6 @@ def runSkyModel(config):
                 mainlog.info("test%s" % i)
                 """
              
-                #if i == 10000:
-
-                #    exit()
 
                 pool.apply_async(
                     add_source_continuum,
@@ -1551,8 +1468,6 @@ def runSkyModel(config):
                         all_gals_fname,
                         base_freq,
                         freqs,
-                        n_x,
-                        n_y,
                     ),
                 )
 
@@ -1560,6 +1475,7 @@ def runSkyModel(config):
         pool.join()
 
         print("loop finished")
+       
         print(time.time() - tstart)
         # write out catalogue
         truthcat_name = (
@@ -1571,10 +1487,8 @@ def runSkyModel(config):
         flux = astfits.getdata(all_gals_fname)
         print(flux.shape)
         summed_line_flux = np.sum(flux, axis=0)
-        plt.imshow(summed_line_flux)
-        plt.show()
-
-        logging.info("Unresolveds: %d", np.sum(cat["Unresolved"].astype(np.float)))
+        print (np.sum(summed_line_flux))
+      
 
         tend = time.time()
         logging.info("...done in {0} seconds.".format(tend - tstart))

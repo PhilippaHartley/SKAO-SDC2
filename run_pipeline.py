@@ -20,12 +20,16 @@ if not os.path.exists(
     )
 
 if config.getboolean("pipeline", "doskymodel"):
-    from skymodel.skymodel import runSkyModel
+    if config.getboolean("skymodel", "docontinuum"):
+        from skymodel.skymodel_continuum import runSkyModel
+        runSkyModel(config)
+    if config.getboolean("skymodel", "doHI"):
+        from skymodel.skymodel import runSkyModel
+        runSkyModel(config)
 
-    runSkyModel(config)
+
 
 # put diagnostics option in here
 if config.getboolean("pipeline", "dodiagnostics"):
     from skymodel.diagnostics import make_plots
-
     make_plots(config)

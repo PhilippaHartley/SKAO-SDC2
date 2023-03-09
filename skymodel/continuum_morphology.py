@@ -268,10 +268,11 @@ def make_img(
     if (radioclass == 6) and (Gaussize_in_pixels > 3.0):
         # SS resolvd AGN: use a postage stamp from a real image
         print("This is a postage stamp")
-       
+        print ('postage stamp2')
         is_unresolved = 0
+        print (datacube_dir + prepared_metadata)
         prepared_cubes = np.loadtxt(datacube_dir + prepared_metadata, dtype="str")
-
+        print ('postage stamp3')
         # find closest-matching atlas cube
         # properties that need matching:
         # keep incl ratios linear since v depends on sin i but b depends on ~cos a
@@ -299,12 +300,13 @@ def make_img(
 
         cube_name = prepared_cubes[distance_min_arg, 0]  # old format
       
-
+        print (cube_name)
         # PH: temporary path fix
         cube_name = cube_name.split(
             "/home/a.bonaldi/data-cold-for-backup/data_challenges/inputs/AGN_library/"
         )[1]
-
+        print (cube_name)
+        print ('postage stamp2')
        
 
         cube_fits = fits.open(cube_name)
@@ -438,7 +440,7 @@ def make_img(
             cube2 = cube2 / np.sum(cube2)
 
         smoothing_done = 1  # flag so that it is not smoothed later (whether I did or not because in that case atlas was low reso)
-
+        print ('postage stamp done')
     if smoothing_done == 0:
         # convolution done on all sources - resolved and unresolved - check
     
@@ -517,11 +519,10 @@ def make_img(
         plt.title("rot %f deg" % ska_PA)
         plt.show()
 
-    # print(np.sum(cube6[0]))
-    # print(np.sum(cube6[1]))
-    ### exit()
+    print ('done')
   
-    #  cube6 = np.ones((5,100,100))
+
+
     return (
         cube6,
         cube_name,
