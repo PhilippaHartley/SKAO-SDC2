@@ -46,7 +46,7 @@ def retrieve_flux():
 
 
 def log_result(result):
-
+    
     global cat
     (i, atlas_source, flux, unresolved) = result
     cat["id"][i] = i
@@ -74,8 +74,7 @@ def add_source_continuum(
     logging.root.setLevel(logging.DEBUG)
     mainlog.info("result%s" % i)
     """
-   
-
+    print ('source', i)
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
     )
@@ -345,6 +344,7 @@ def runSkyModel(config):
     w_spectral = setup_wcs(config, ndim=3, cosmology=cosmo)
     w_twod = setup_wcs(config, ndim=2, cosmology=cosmo)
     w_fourd = setup_wcs(config, ndim=4)
+
 
     header_spectral = w_spectral.to_header()
     header_twod = w_twod.to_header()
@@ -673,7 +673,7 @@ def runSkyModel(config):
         logging.root.setLevel(logging.DEBUG)
         mainlog.info("test%s" % i)
         """
-        
+
 
         pool.apply_async(
             add_source_continuum,
