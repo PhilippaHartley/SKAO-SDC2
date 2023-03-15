@@ -1,6 +1,5 @@
 """
 Script to convert a T-RECS catalogue into a sky model FITS file.
-
 """
 
 
@@ -31,13 +30,13 @@ tstart = time.time()
 arcsectorad = (1.0 * uns.arcsec).to(uns.rad).value
 degtoarcsec = (1.0 * uns.deg).to(uns.arcsec).value
 
-"""
-def initialise_file(filename, ):
-    
-def make_header(header_type,):
 
-def retrieve_flux():
-"""
+#def initialise_file(filename, ):
+    
+#def make_header(header_type,):
+
+#def retrieve_flux():
+
 
 
 def log_result(result):
@@ -79,14 +78,14 @@ def add_source(
     cat,
 
 ):
-    '''
-    print("making source")
-    mainlog = logging.getLogger("main%d" % i)
-    h = logging.FileHandler("log%d.log" % i)
-    mainlog.addHandler(h)
-    logging.root.setLevel(logging.DEBUG)
-    mainlog.info("result%s" % i)
-    '''
+
+  #  print("making source")
+  #  mainlog = logging.getLogger("main%d" % i)
+  #  h = logging.FileHandler("log%d.log" % i)
+  #  mainlog.addHandler(h)
+  #  logging.root.setLevel(logging.DEBUG)
+  #  mainlog.info("result%s" % i)
+
 
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
@@ -285,7 +284,7 @@ def runSkyModel(config):
     psf_pa = config.getfloat("skymodel", "simple_psf_pa") * galsim.degrees
     pixel_scale = config.getfloat("skymodel", "pixel_scale")
     pixel_scale_str = str(pixel_scale).split()[0]
-    fov = config.getfloat("skymodel", "field_of_view")
+    fov = config.getfloat("field", "field_of_view")
     logging.info("FoV from ini file, arcmin: %f", fov)
 
     # set sky coordinates
@@ -527,10 +526,25 @@ def runSkyModel(config):
 
     nobj = len(cat)
 
-    pool = 1
-    if not pool:
-        for i, cat_gal in enumerate(cat):
-            add_source(
+
+
+
+
+    print("going into loop")
+    multiprocessing.set_start_method("fork")
+    pool = multiprocessing.Pool(n_cores)
+    for i, cat_gal in enumerate(cat):
+    
+       # mainlog = logging.getLogger("main%d" % i)
+       # h = logging.FileHandler("log%d.log" % i)
+       # mainlog.addHandler(h)
+       # logging.root.setLevel(logging.DEBUG)
+       # mainlog.info("test%s" % i)
+    
+
+        pool.apply_async(
+            add_source,
+            args=(
                 i,
                 cat_gal,
                 nobj,
@@ -542,44 +556,15 @@ def runSkyModel(config):
                 arr_dims,
                 all_gals_fname,
                 cat,
-            )
+                
+            ),
+            callback=log_result,
+        )
 
-    if pool:
-        print("going into loop")
-        multiprocessing.set_start_method("fork")
-        pool = multiprocessing.Pool(n_cores)
-        for i, cat_gal in enumerate(cat):
-            '''
-            mainlog = logging.getLogger("main%d" % i)
-            h = logging.FileHandler("log%d.log" % i)
-            mainlog.addHandler(h)
-            logging.root.setLevel(logging.DEBUG)
-            mainlog.info("test%s" % i)
-            '''
-
-            pool.apply_async(
-                add_source,
-                args=(
-                    i,
-                    cat_gal,
-                    nobj,
-                    w_spectral,
-                    config,
-                    pixel_scale_str,
-                    dnu,
-                    psf_maj_arcsec,
-                    arr_dims,
-                    all_gals_fname,
-                    cat,
-                    
-                ),
-                callback=log_result,
-            )
-
-        pool.close()
-        pool.join()
-        print(cat)
-        print(cat["Atlas_source"][i])
+    pool.close()
+    pool.join()
+    print(cat)
+    print(cat["Atlas_source"][i])
 
 
 

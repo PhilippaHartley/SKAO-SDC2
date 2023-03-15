@@ -36,13 +36,13 @@ tstart = time.time()
 arcsectorad = (1.0 * uns.arcsec).to(uns.rad).value
 degtoarcsec = (1.0 * uns.deg).to(uns.arcsec).value
 
-"""
-def initialise_file(filename, ):
-    
-def make_header(header_type,):
 
-def retrieve_flux():
-"""
+#def initialise_file(filename, ):
+    
+#def make_header(header_type,):
+
+#def retrieve_flux():
+
 
 
 def log_result(result):
@@ -67,13 +67,13 @@ def add_source_continuum(
     base_freq,
     freqs,
 ):
-    """
-    mainlog = logging.getLogger("main%d" % i)
-    h = logging.FileHandler("log%d.log" % i)
-    mainlog.addHandler(h)
-    logging.root.setLevel(logging.DEBUG)
-    mainlog.info("result%s" % i)
-    """
+
+  #  mainlog = logging.getLogger("main%d" % i)
+  #  h = logging.FileHandler("log%d.log" % i)
+  #  mainlog.addHandler(h)
+  #  logging.root.setLevel(logging.DEBUG)
+  #  mainlog.info("result%s" % i)
+
     print ('source', i)
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
@@ -666,13 +666,13 @@ def runSkyModel(config):
     pool = multiprocessing.Pool(n_cores)
     for i, cat_gal in enumerate(cat):
         p = 0
-        """
-        mainlog = logging.getLogger("main%d" % i)
-        h = logging.FileHandler("log%d.log" % i)
-        mainlog.addHandler(h)
-        logging.root.setLevel(logging.DEBUG)
-        mainlog.info("test%s" % i)
-        """
+  
+      #  mainlog = logging.getLogger("main%d" % i)
+      #  h = logging.FileHandler("log%d.log" % i)
+      #  mainlog.addHandler(h)
+      #  logging.root.setLevel(logging.DEBUG)
+      #  mainlog.info("test%s" % i)
+   
 
 
         pool.apply_async(

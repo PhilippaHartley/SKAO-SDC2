@@ -1,9 +1,6 @@
 import configparser
 import os
-import pdb
 import sys
-
-import numpy as np
 
 config = configparser.ConfigParser()
 config.read(sys.argv[1])
@@ -24,12 +21,6 @@ if config.getboolean("pipeline", "doskymodel"):
         from skymodel.skymodel_continuum import runSkyModel
         runSkyModel(config)
     if config.getboolean("skymodel", "doHI"):
-        from skymodel.skymodel import runSkyModel
+        from skymodel.skymodel_HI import runSkyModel
         runSkyModel(config)
 
-
-
-# put diagnostics option in here
-if config.getboolean("pipeline", "dodiagnostics"):
-    from skymodel.diagnostics import make_plots
-    make_plots(config)
