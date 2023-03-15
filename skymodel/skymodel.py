@@ -515,9 +515,13 @@ def runSkyModel(config):
         np.min(cat["dec_offset"]),
         np.max(cat["dec_offset"]),
     )
-
+    # cut according to frequency range
     vel_cut = ((cat["opt_vel"]) > velo_base) * ((cat["opt_vel"]) < velo_max)
     cat = cat[vel_cut]
+
+    # retain only sources with HI signal
+    MHI_cut = cat["MHI"] > 0
+    cat = cat[MHI_cut]
 
     logging.info("Cat length after fov and z cut: %d", len(cat))
 
