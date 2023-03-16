@@ -604,7 +604,7 @@ def runSkyModel(config):
         cat["Min_halflight"].unit = "arcsec"
         # number of sources, on grid if requested
 
-    nobj = len(cat)
+
 
     # flux range
     if config.get("continuum", "fluxscale") == "constant":
@@ -642,6 +642,9 @@ def runSkyModel(config):
         abs(cat["dec_offset"]) < dec_offset_max
     )
     cat = cat[fov_cut]
+
+
+    nobj = len(cat)
     cat = cat[
         "id",
         "RA",
