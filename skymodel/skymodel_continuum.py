@@ -27,7 +27,7 @@ from skymodel.continuum_morphology import make_img
 from skymodel.skymodel_tools import setup_wcs
 
 
-tstart = time.time()
+
 
 # mother_seed=5820743 #seed for random number generation - fullcube
 # mother_seed = 6879432  # seed for random number generation - smallcube1 (dev)
@@ -74,7 +74,7 @@ def add_source_continuum(
   #  logging.root.setLevel(logging.DEBUG)
   #  mainlog.info("result%s" % i)
 
-    print ('source', i)
+
     logging.info(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
     )
@@ -225,8 +225,6 @@ def add_source_continuum(
     img3 += region
     fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
 
-    t_source = time.time() - tstart
-
     fitsf.close()
 
     logging.info("")
@@ -242,7 +240,7 @@ def runSkyModel(config):
         ConfigParser configuration containing necessary sections.
 
     """
-
+    tstart = time.time()    
     # Set up logging
     logfilename = "logs/%s.log" % config.get("field", "fits_prefix")
     os.system("rm %s" % logfilename)
@@ -369,6 +367,11 @@ def runSkyModel(config):
     all_gals_fname = (
         data_path_large_files + config.get("field", "fits_prefix") + ".fits"
     )
+
+    if os.path.exists(all_gals_fname):
+        print ('**** message from pipeline: '+all_gals_fname+' already exists') 
+        print ('**** message from pipeline: not running skymodel_continuum this time')
+        return
 
     os.system("rm {0}".format(all_gals_fname))
     os.system("rm {0}".format(all_gals_fname + "_z.fits"))
@@ -665,7 +668,7 @@ def runSkyModel(config):
 
 
     print("going into loop")
-    multiprocessing.set_start_method("fork")
+    multiprocessing.get_context("fork")
     pool = multiprocessing.Pool(n_cores)
     for i, cat_gal in enumerate(cat):
         p = 0
@@ -721,7 +724,7 @@ def runSkyModel(config):
     print ('summed cube:', np.sum(astfits.getdata(all_gals_fname)))
     tend = time.time()
     logging.info("...done in {0} seconds.".format(tend - tstart))
-    print('done in %.3f seconds'%(tend - tstart))
+    print("skymodel_continuum finished in {0} seconds.".format(tend - tstart))
 
 
 if __name__ == "__main__":

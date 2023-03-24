@@ -25,7 +25,7 @@ from skymodel.continuum_morphology import make_img
 from skymodel.HI_morphology import make_cube
 from skymodel.skymodel_tools import setup_wcs
 
-tstart = time.time()
+
 
 arcsectorad = (1.0 * uns.arcsec).to(uns.rad).value
 degtoarcsec = (1.0 * uns.deg).to(uns.arcsec).value
@@ -91,7 +91,7 @@ def add_source(
         "..........Adding source {0} of {1} to skymodel..........".format(i + 1, nobj)
     )
 
-    print ('source', i)
+
     x, y, v = w_spectral.wcs_world2pix(
         cat_gal["RA"], cat_gal["Dec"], cat_gal["opt_vel"], 1
     )
@@ -241,7 +241,7 @@ def runSkyModel(config):
         ConfigParser configuration containing necessary sections.
 
     """
-
+    tstart = time.time()
     # Set up logging
     logfilename = "logs/%s.log" % config.get("field", "fits_prefix")
     os.system("rm %s" % logfilename)
@@ -359,6 +359,10 @@ def runSkyModel(config):
     all_gals_summed_fname = (
         data_path + config.get("field", "fits_prefix") + "_image.fits"
     )
+    if os.path.exists(all_gals_fname):
+        print ('**** message from pipeline: '+all_gals_fname+' already exists') 
+        print ('**** message from pipeline: not running skymodel_HI')
+        return
 
     os.system("rm {0}".format(all_gals_fname))
     logging.info("Creating empty image file, {0} ...".format(all_gals_fname))
@@ -521,17 +525,10 @@ def runSkyModel(config):
     # retain only sources with HI signal
     MHI_cut = cat["MHI"] > 0
     cat = cat[MHI_cut]
-
     logging.info("Cat length after fov and z cut: %d", len(cat))
-
     nobj = len(cat)
-
-
-
-
-
     print("going into loop")
-    multiprocessing.set_start_method("fork")
+    multiprocessing.get_context("fork")
     pool = multiprocessing.Pool(n_cores)
     for i, cat_gal in enumerate(cat):
     
@@ -563,11 +560,7 @@ def runSkyModel(config):
 
     pool.close()
     pool.join()
-    print(cat)
-    print(cat["Atlas_source"][i])
-
-
-
+  
     # check all sources have been created and added
     filled_rows = np.argwhere(cat["Atlas_source"] != "0.0")[:,0]  
     len1 = len(cat)
@@ -578,13 +571,8 @@ def runSkyModel(config):
         print('input sources', len1,' vs output sources', len2)
         exit()
 
-
-    print (cat["id"])
     cat["id"] = np.arange(len(cat))
-    print (cat["id"])
-
     # write out catalogues
-
     # restricted catalogue: for ska use
     truthcat_name = (
         data_path + config.get("field", "fits_prefix") + "_restricted_truthcat.fits"
@@ -635,7 +623,7 @@ def runSkyModel(config):
 
     tend = time.time()
     logging.info("...done in {0} seconds.".format(tend - tstart))
-    print(tend - tstart)
+    print("skymodel_HI finished in {0} seconds.".format(tend - tstart))
 
     print("preparing check by doing simple sum of abs values")
     print("sum of absolute 3d array values is %f" % np.abs(flux).sum())
