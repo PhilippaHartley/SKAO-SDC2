@@ -9,11 +9,11 @@ doobserve = False
 
 tstart = time.time()
 
-
+cver = 'dev'
 
 if doHI:
     config = configparser.ConfigParser()
-    config.read('inis/skymodel/HI/HI_tiny_test.ini')
+    config.read('inis/skymodel/HI/SDC2_HI_'+cver+'.ini')
     if not os.path.exists(
     config.get("pipeline", "base_dir")
     + config.get("pipeline", "data_path")
@@ -26,11 +26,11 @@ if doHI:
     runSkyModel(config)
 if docontinuum:
     config = configparser.ConfigParser()
-    config.read('inis/skymodel/continuum/continuum_tiny_test_f1.ini')
+    config.read('inis/skymodel/continuum/SDC2_continuum_dev_f1.ini')
     from skymodel.skymodel_continuum import runSkyModel
     runSkyModel(config)
     config = configparser.ConfigParser()
-    config.read('inis/skymodel/continuum/continuum_tiny_test_f2.ini')
+    config.read('inis/skymodel/continuum/SDC2_continuum_dev_f2.ini')
     runSkyModel(config)
 if doobserve:
     config = configparser.ConfigParser()
