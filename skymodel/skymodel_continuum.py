@@ -21,6 +21,7 @@ from astropy.table import Table
 from fitsio import FITS, FITSHDR
 from numpy.core.defchararray import add as stradd
 from numpy.core.defchararray import multiply as strmultiply
+from multiprocessing import Manager
 
 import skymodel.skymodel_tools as tools
 from skymodel.continuum_morphology import make_img
@@ -66,8 +67,14 @@ def add_source_continuum(
     all_gals_fname,
     base_freq,
     freqs,
-):
+    lock,
+  
 
+):
+    if i%100==0:
+        print ('source',i)
+
+   # return
   #  mainlog = logging.getLogger("main%d" % i)
   #  h = logging.FileHandler("log%d.log" % i)
   #  mainlog.addHandler(h)
@@ -192,40 +199,42 @@ def add_source_continuum(
         trc2,
     )
 
-    # write the info for this object to files
-    fitsf = FITS(all_gals_fname, "rw")
-    fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
-    fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
 
-    # the redshift map contains the redshift of the brightest source on the LoS. 
-    # this is judged by looking at the dummy map _maxflux and comparing if with the postage stamp. 
-    # the z map is updated only where the postage stamp is brighter than what recorder in _maxflux
+    with lock:
+        # write the info for this object to files
+        fitsf = FITS(all_gals_fname, "rw")
+        fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
+        fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
 
-    # read the recorded values for flux and redshift at the postage location
-    flux_old = fitsf_f[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
-    z_old = fitsf_z[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+        # the redshift map contains the redshift of the brightest source on the LoS. 
+        # this is judged by looking at the dummy map _maxflux and comparing if with the postage stamp. 
+        # the z map is updated only where the postage stamp is brighter than what recorder in _maxflux
 
-    # initialise the new arrays
-    flux_new = z_old * 0.0
-    flux_new[0] = img3[0]  # at the lowest frequency
-    zvalue = cat_gal["z"]
-    img_z = z_old
-    img_f = flux_old
+        # read the recorded values for flux and redshift at the postage location
+        flux_old = fitsf_f[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+        z_old = fitsf_z[0][0:1, blc1 : trc1 + 1, blc2 : trc2 + 1]
 
-    # update only where postage brighter than record
-    img_z[flux_new > flux_old] = zvalue
-    img_f[flux_new > flux_old] = flux_new[flux_new > flux_old]
+        # initialise the new arrays
+        flux_new = z_old * 0.0
+        flux_new[0] = img3[0]  # at the lowest frequency
+        zvalue = cat_gal["z"]
+        img_z = z_old
+        img_f = flux_old
 
-    fitsf_f[0].write(img_f, 0, blc1, blc2, 0, trc1, trc2)
-    fitsf_z[0].write(img_z, 0, blc1, blc2, 0, trc1, trc2)
+        # update only where postage brighter than record
+        img_z[flux_new > flux_old] = zvalue
+        img_f[flux_new > flux_old] = flux_new[flux_new > flux_old]
 
-    # adding the source to the total map
-    # if running in parallel, this step can go out of synch
-    region = fitsf[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
-    img3 += region
-    fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
+        fitsf_f[0].write(img_f, 0, blc1, blc2, 0, trc1, trc2)
+        fitsf_z[0].write(img_z, 0, blc1, blc2, 0, trc1, trc2)
 
-    fitsf.close()
+        # adding the source to the total map
+        # if running in parallel, this step can go out of synch
+        region = fitsf[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+        img3 += region
+        fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
+
+        fitsf.close()
 
     logging.info("")
 
@@ -669,37 +678,43 @@ def runSkyModel(config):
 
     print("going into loop")
     multiprocessing.get_context("fork")
-    pool = multiprocessing.Pool(n_cores)
-    for i, cat_gal in enumerate(cat):
-        p = 0
+    # set up mutex lock
+
+    with Manager() as manager:
+        # create the shared lock
+        lock = manager.Lock()
+        pool = multiprocessing.Pool(n_cores)
+        for i, cat_gal in enumerate(cat):
   
-      #  mainlog = logging.getLogger("main%d" % i)
-      #  h = logging.FileHandler("log%d.log" % i)
-      #  mainlog.addHandler(h)
-      #  logging.root.setLevel(logging.DEBUG)
-      #  mainlog.info("test%s" % i)
-   
+      
+          #  mainlog = logging.getLogger("main%d" % i)
+          #  h = logging.FileHandler("log%d.log" % i)
+          #  mainlog.addHandler(h)
+          #  logging.root.setLevel(logging.DEBUG)
+          #  mainlog.info("test%s" % i)
 
+            pool.apply_async(
+                add_source_continuum,
+                args=(
+                    i,
+                    cat_gal,
+                    nobj,
+                    w_twod,
+                    config,
+                    pixel_scale_str,
+                    psf_maj_arcsec,
+                    arr_dims,
+                    all_gals_fname,
+                    base_freq,
+                    freqs,
+                    lock,
+        
+        
+                ), callback=log_result,
+            )
 
-        pool.apply_async(
-            add_source_continuum,
-            args=(
-                i,
-                cat_gal,
-                nobj,
-                w_twod,
-                config,
-                pixel_scale_str,
-                psf_maj_arcsec,
-                arr_dims,
-                all_gals_fname,
-                base_freq,
-                freqs,
-            ), callback=log_result,
-        )
-
-    pool.close()
-    pool.join()
+        pool.close()
+        pool.join()
    
     # check all sources have been created and added
     filled_rows = np.argwhere(cat["Atlas_source"] != "0.0")[

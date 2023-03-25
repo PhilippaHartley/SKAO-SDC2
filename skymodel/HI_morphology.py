@@ -107,6 +107,7 @@ def make_cube(
 
     while True:
         distance_min_arg = distance_min_args[np.random.randint(3)]
+      #  print (i,np.random.randint(3),distance_min_arg)
         if distance_min_arg == 22:          
             if ska_incl / np.pi * 180 < 10:
                 break

@@ -18,6 +18,7 @@ from astropy.table import Table
 from fitsio import FITS, FITSHDR
 from numpy.core.defchararray import add as stradd
 from numpy.core.defchararray import multiply as strmultiply
+from multiprocessing import Manager
 
 
 import skymodel.skymodel_tools as tools
@@ -76,9 +77,11 @@ def add_source(
     arr_dims,
     all_gals_fname,
     cat,
+    lock,
 
 ):
-
+    if i%100 == 0:
+        print('source',i)
   #  print("making source")
   #  mainlog = logging.getLogger("main%d" % i)
   #  h = logging.FileHandler("log%d.log" % i)
@@ -195,16 +198,21 @@ def add_source(
 
     logging.info("BLC, TRC: %f %f %f, %f %f %f ", blc0, blc1, blc2, trc0, trc1, trc2)
 
-    # open cube file for writing
-    fitsf = FITS(all_gals_fname, "rw")
 
-    # retrieve any signal that is already in source location 
-    region = fitsf[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
-    if np.sum(region) > 0:
-        logging.info("Flux already exists in region; adding new flux")
-    img3 += region
-    fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
-    fitsf.close()
+    # use mutex 
+    with lock:
+   
+        # open cube file for writing
+        fitsf = FITS(all_gals_fname, "rw")
+        # retrieve any signal that is already in source location 
+        region = fitsf[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+        if np.sum(region) > 0:
+            logging.info("Flux already exists in region; adding new flux")
+
+        img3 += region
+        fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
+        fitsf.close()
+
     logging.info("")
 
     '''
@@ -528,38 +536,45 @@ def runSkyModel(config):
     logging.info("Cat length after fov and z cut: %d", len(cat))
     nobj = len(cat)
     print("going into loop")
+
+
     multiprocessing.get_context("fork")
-    pool = multiprocessing.Pool(n_cores)
-    for i, cat_gal in enumerate(cat):
-    
-       # mainlog = logging.getLogger("main%d" % i)
-       # h = logging.FileHandler("log%d.log" % i)
-       # mainlog.addHandler(h)
-       # logging.root.setLevel(logging.DEBUG)
-       # mainlog.info("test%s" % i)
-    
+    # set up mutex lock
+    with Manager() as manager:
+        # create the shared lock
+        lock = manager.Lock()
+        pool = multiprocessing.Pool(n_cores)
+        for i, cat_gal in enumerate(cat):
+        
+           # mainlog = logging.getLogger("main%d" % i)
+           # h = logging.FileHandler("log%d.log" % i)
+           # mainlog.addHandler(h)
+           # logging.root.setLevel(logging.DEBUG)
+           # mainlog.info("test%s" % i)
+        
 
-        pool.apply_async(
-            add_source,
-            args=(
-                i,
-                cat_gal,
-                nobj,
-                w_spectral,
-                config,
-                pixel_scale_str,
-                dnu,
-                psf_maj_arcsec,
-                arr_dims,
-                all_gals_fname,
-                cat,
-                
-            ),
-            callback=log_result,
-        )
+            pool.apply_async(
+                add_source,
+                args=(
+                    i,
+                    cat_gal,
+                    nobj,
+                    w_spectral,
+                    config,
+                    pixel_scale_str,
+                    dnu,
+                    psf_maj_arcsec,
+                    arr_dims,
+                    all_gals_fname,
+                    cat,
+                    lock,
+                    
+                ),
+                callback=log_result,
+            )
 
-    pool.close()
-    pool.join()
+        pool.close()
+        pool.join()
   
     # check all sources have been created and added
     filled_rows = np.argwhere(cat["Atlas_source"] != "0.0")[:,0]  
