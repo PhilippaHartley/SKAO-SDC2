@@ -1,0 +1,127 @@
+FITS (Flexible Image Transport System) format is defined in 'Astronomy
+and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H
+FITS: Miriad fits: Revision 1.32, 2014/09/15 04:39:01 UTC
+FITS: Executed on: 2018-08-22T12:16:02.0
+FITS: Command line inputs follow:
+FITS:   op=xyin
+FITS:   in=E_HH_log.fits
+FITS:   out=E_HH_log
+MATHS: Miriad maths: Revision 1.5, 2011/03/30 05:34:52 UTC
+MATHS: Executed on: 2018-08-22T12:16:09.0
+MATHS: Command line inputs follow:
+MATHS:   exp=10**(<E_HH_log>/10.)
+MATHS:   out=E_HH
+MATHS: Bounding region is Blc=(1,1,1,1),Trc=(257,257,1,1)
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:05:07.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/cdelt1
+PUTHD:   value=-0.03235
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:05:07.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/cdelt2
+PUTHD:   value=0.03235
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:05:07.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/crval3
+PUTHD:   value=1.4
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:06:22.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/cdelt1
+PUTHD:   value=-0.03235
+PUTHD:   degrees
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:06:22.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/cdelt2
+PUTHD:   value=0.03235
+PUTHD:   degrees
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:06:42.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/cdelt1
+PUTHD:   value=-0.03235
+PUTHD:   degrees
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:07:12.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/cdelt1
+PUTHD:   value=-0.03235,degrees
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-22T13:07:21.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=E_HH14/cdelt2
+PUTHD:   value=0.03235,degrees
+MATHS: Miriad maths: Revision 1.5, 2011/03/30 05:34:52 UTC
+MATHS: Executed on: 2018-08-22T13:08:45.0
+MATHS: Command line inputs follow:
+MATHS:   exp=(E_HH14+4.08e-5)/(1.+4.08e-5)
+MATHS:   out=E_HH14f
+MATHS: Bounding region is Blc=(1,1,1,1),Trc=(257,257,1,1)
+MATHS: Miriad maths: Revision 1.5, 2011/03/30 05:34:52 UTC
+MATHS: Executed on: 2018-08-23T08:06:46.0
+MATHS: Command line inputs follow:
+MATHS:   exp=(<E_HH14f>+<E_VV14f>)/2.
+MATHS:   out=PB_I_14
+MATHS: Bounding region is Blc=(1,1,1,1),Trc=(257,257,1,1)
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:13:44.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/ctype1
+PUTHD:   value=RA---SIN
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:13:44.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/ctype2
+PUTHD:   value=DEC--SIN
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:13:44.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/crval1
+PUTHD:   value=0.
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:13:44.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/crval2
+PUTHD:   value=-30.
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:13:44.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/cdelt1
+PUTHD:   value=-5.646e-4
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:13:44.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/cdelt2
+PUTHD:   value=5.646e-4
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:15:09.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/crval2
+PUTHD:   value=-0.5236
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2018-08-23T08:15:36.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/crval2
+PUTHD:   value=-0.5235988
+FITS: Miriad fits: fits: Revision 1.34, 2019/08/04 23:07:40 UTC
+FITS: Executed on: 20JUN11:12:34:49.0
+FITS: Command line inputs follow:
+FITS:    op=xyout
+FITS:    in=PB_I_14
+FITS:    out=PB_I_14.fits
+FITS: NOTE: Use options=varwt if loading into Miriad
+FITS: Miriad fits: Revision 1.34, 2019/08/04 23:07:40 UTC
+FITS: Executed on: 2020-06-11T11:40:39.0
+FITS: Command line inputs follow:
+FITS:   op=xyin
+FITS:   in=PB_I_14.fits
+FITS:   out=PB_I_14
+PUTHD: Miriad PutHd: puthd: Revision 1.3, 2011/09/15 05:53:36 UTC
+PUTHD: Executed on: 2020-11-13T13:16:56.0
+PUTHD: Command line inputs follow:
+PUTHD:   in=PB_I_14/crval1
+PUTHD:   value=3.141592654

@@ -285,6 +285,9 @@ def runSkyModel(config):
         + "/"
     )
 
+    if not os.path.exists(data_path):
+        os.mkdir(data_path)
+
     # set image properties
     psf_maj_arcsec = config.getfloat("skymodel", "simple_psf_maj")
     psf_maj = psf_maj_arcsec * galsim.arcsec
@@ -309,8 +312,7 @@ def runSkyModel(config):
     top_freq = config.getfloat("observation", "highest_frequency")
     bw = top_freq - base_freq
     fov, image_size = tools.get_image_size(fov, pixel_scale)
-    logging.info("Image_size, power of two, pixels: %f", image_size)
-    logging.info("FoV reduced to a power of two, arcmin: %f", fov)
+    logging.info("Image_size, pixels: %f", image_size)
     logging.info("Final base_freq, Hz: %f", base_freq)
     logging.info("Final top_freq, Hz: %f", top_freq)
 
@@ -638,6 +640,10 @@ def runSkyModel(config):
 
     tend = time.time()
     logging.info("...done in {0} seconds.".format(tend - tstart))
+
+    # close logging so that a new log file can be opened if needed
+
+   
     print("skymodel_HI finished in {0} seconds.".format(tend - tstart))
 
     print("preparing check by doing simple sum of abs values")

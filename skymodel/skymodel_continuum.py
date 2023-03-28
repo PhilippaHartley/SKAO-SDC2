@@ -262,6 +262,7 @@ def runSkyModel(config):
     )
     logging.info("Beginning simulation")
 
+
     n_cores = int(config.getfloat("pipeline", "n_cores"))
     logging.info("Running with %d cores", n_cores)
 
@@ -286,6 +287,10 @@ def runSkyModel(config):
         + config.get("pipeline", "project_name")
         + "/"
     )
+
+
+    if not os.path.exists(data_path):
+        os.mkdir(data_path)
 
     # set image properties
     psf_maj_arcsec = config.getfloat("skymodel", "simple_psf_maj")
@@ -313,8 +318,7 @@ def runSkyModel(config):
     top_freqname = config.get("observation", "highest_frequency")
     fov, image_size = tools.get_image_size(fov, pixel_scale)
 
-    logging.info("Image_size, power of two, pixels: %f", image_size)
-    logging.info("FoV reduced to a power of two, arcmin: %f", fov)
+    logging.info("Image_size, pixels: %f", image_size)
     logging.info("Final base_freq, Hz: %f", base_freq)
     logging.info("Final top_freq, Hz: %f", top_freq)
 
@@ -740,6 +744,8 @@ def runSkyModel(config):
     tend = time.time()
     logging.info("...done in {0} seconds.".format(tend - tstart))
     print("skymodel_continuum finished in {0} seconds.".format(tend - tstart))
+
+  
 
 
 if __name__ == "__main__":
