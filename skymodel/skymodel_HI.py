@@ -286,7 +286,7 @@ def runSkyModel(config):
     )
 
     if not os.path.exists(data_path):
-        os.mkdir(data_path)
+        os.system('mkdir -p '+ data_path)
 
     # set image properties
     psf_maj_arcsec = config.getfloat("skymodel", "simple_psf_maj")
