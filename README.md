@@ -75,5 +75,5 @@ At the end of the run, the SKA-Mid-observed HI and continuum image cubes can be 
 A detailed description of the simulations is available in Section 3 of the SDC2 paper [here](https://arxiv.org/abs/2303.07943).
 
 
-### License
+
 
