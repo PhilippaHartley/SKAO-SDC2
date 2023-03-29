@@ -8,8 +8,17 @@ docontinuum = True
 doobserve = True
 
 tstart = time.time()
+print (sys.argv)
+if len(sys.argv)>1:
+   cver = sys.argv[1]
+   if not cver in ['dev', 'ldev', 'eval', 'full']:
+       print ("please select from: dev, ldev, eval, full")
+       exit()
+else:       
+    cver = 'dev'
 
-cver = 'dev'
+
+
 
 if doHI:
     config = configparser.ConfigParser()
