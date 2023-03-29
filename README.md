@@ -47,7 +47,7 @@ Four data product versions were produced for SDC2:
 'eval':
 'full':
 
-The default version that will be run is 'dev'. This can be changed by appending a version name as an argument to ???, e.g. `python run_SDC2_pipeline.py eval`.
+The default version that will be run is 'dev'. This can be changed by passing a version name as an argument to the main script, e.g. `python run_SDC2_pipeline.py eval`.
 
 
 There are two main stages to the pipeline: `skymodel` takes a catalogue of sources to produce image models of the sky;  `observe` takes the image models to produce the sky as observed by the SKA-Mid telescope. Each stage uses several modules, following the recipe below.
