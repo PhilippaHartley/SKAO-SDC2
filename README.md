@@ -2,9 +2,9 @@
 
 This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge (SDC2).
 
-### Prerequisites
+## Prerequisites
 
-Environment
+###Environment
 
 The Python environment has been exported to `SDC2_full_dependencies.yml` which lists the Python dependencies.
 
@@ -26,18 +26,18 @@ before installing via
 
 `python setup.py install`
 
-Source input catalogues
+###Source input catalogues
 
-The pipeline uses catalogue files produced by T-RECS. Link? The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/1MQ12xhKH1UAD8EK7XjQA5lyBUCTc4jim?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
+The pipeline uses catalogue files produced by T-RECS. The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/1MQ12xhKH1UAD8EK7XjQA5lyBUCTc4jim?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
 
-### Basic usage
+## Basic usage
 
 `python run_SDC2_pipeline.py`
 
 
-### Detailed usage
+## Detailed usage
 
-How to run the SDC2 simulation pipeline
+###How to run the SDC2 simulation pipeline
 
 An end-to-end pipeline, `run_SDC2_pipeline.py`, can be used to simulate the data products produced for SDC2. 
 
@@ -47,22 +47,20 @@ Four data product versions were produced for SDC2:
 'eval':
 'full':
 
-The default version that will be run is 'dev'. This can be changed by appending a version name as an argument to ???, e.g. 
-
-`python run_SDC2_pipeline.py eval`
+The default version that will be run is 'dev'. This can be changed by appending a version name as an argument to ???, e.g. `python run_SDC2_pipeline.py eval`.
 
 
 There are two main stages to the pipeline: `skymodel` takes a catalogue of sources to produce image models of the sky;  `observe` takes the image models to produce the sky as observed by the SKA-Mid telescope. Each stage uses several modules, following the recipe below.
 
 Recipe for producing an SKA-Mid-observed HI sky
 
-1. Run `skymodel_HI.py` over frequency range 950?1150 MHz
+1. Run `skymodel_HI.py` over frequency range 950-1150 MHz
 This module takes as input a T-RECS catalogue containing a list of simulated sources and their HI and continuum properties. The module converts the morphological HI emission properties of each source into a 'postage stamp' image cube. Each cube is then placed in the full HI emission field at its catalogued position. This module also outputs a new catalogue file that lists the subset of TRECS sources used in the simulation with their HI properties.
 
-2. Run `skymodel_continuum.py` over frequency range 950?1150 MHz
+2. Run `skymodel_continuum.py` over frequency range 950-1150 MHz
 This module uses the same T-RECS catalogue to produce a corresponding field of continuum emission at the same frequency as the HI field. 
 
-3. Run `skymodel_continuum.py` over frequency range 1200?1400 MHz
+3. Run `skymodel_continuum.py` over frequency range 1200-1400 MHz
 This module uses the same T-RECS catalogue but produces a continuum field at a higher frequency. 
 
 4. Run `observe.py`
@@ -72,8 +70,10 @@ The `inis` directory contains example initialisation files for each step. Each i
 
 At the end of the run, the SKA-Mid-observed HI and continuum image cubes can be found along with the output HI source catalogue in `out/products`.
 
+### Simulation description
+
 A detailed description of the simulations is available in Section 3 of the SDC2 paper (link).
 
 
-
+## License
 
