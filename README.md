@@ -4,11 +4,11 @@ This repository contains a collection of scripts used to generate mock SKA-Mid-o
 
 ## Prerequisites
 
-###Environment
+### Environment
 
 The Python environment has been exported to `SDC2_full_dependencies.yml` which lists the Python dependencies.
 
-Also in use is a version of fitsio that has been patched to allow arbitrarily large file sizes to be written directly to disk, and to allow subsets of data to be written to the file on disk (this functionality is currently unavailable in AstroPy). The patched version can be downloaded from [here](https://drive.google.com/drive/folders/1o25lDs-7_loO1qZwzdpHyNQqKVZGsnXn?usp=sharing). 
+Also in use is a version of fitsio that has been patched to allow arbitrarily large file sizes to be written directly to disk, and to allow subsets of data to be written to the file on disk (this functionality is currently unavailable in AstroPy). The patched version can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). 
 
 To set up the environment for running the pipeline, first create the Python environment via conda
 
@@ -26,9 +26,9 @@ before installing via
 
 `python setup.py install`
 
-###Source input catalogues
+### Source input catalogues
 
-The pipeline uses catalogue files produced by T-RECS. The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/1MQ12xhKH1UAD8EK7XjQA5lyBUCTc4jim?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
+The pipeline uses catalogue files produced by T-RECS. The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
 
 ## Basic usage
 
@@ -37,7 +37,7 @@ The pipeline uses catalogue files produced by T-RECS. The catalogues produced fo
 
 ## Detailed usage
 
-###How to run the SDC2 simulation pipeline
+### How to run the SDC2 simulation pipeline
 
 An end-to-end pipeline, `run_SDC2_pipeline.py`, can be used to simulate the data products produced for SDC2. 
 
