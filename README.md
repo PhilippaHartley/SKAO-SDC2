@@ -1,10 +1,10 @@
 # Science Data Challenge 2: Neutral Hydrogen
 
-This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge (SDC2).
+This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge (SDC2).lihnk to website
 
-## Prerequisites
+### Prerequisites
 
-### Environment
+#### Environment
 
 The Python environment has been exported to `SDC2_full_dependencies.yml` which lists the Python dependencies.
 
@@ -26,18 +26,18 @@ before installing via
 
 `python setup.py install`
 
-### Source input catalogues
+#### Source input catalogues
 
 The pipeline uses catalogue files produced by T-RECS. The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
 
-## Basic usage
+### Basic usage
 
 `python run_SDC2_pipeline.py`
 
 
-## Detailed usage
+### Detailed usage
 
-### How to run the SDC2 simulation pipeline
+#### How to run the SDC2 simulation pipeline
 
 An end-to-end pipeline, `run_SDC2_pipeline.py`, can be used to simulate the data products produced for SDC2. 
 
@@ -64,16 +64,16 @@ This module uses the same T-RECS catalogue to produce a corresponding field of c
 This module uses the same T-RECS catalogue but produces a continuum field at a higher frequency. 
 
 4. Run `observe.py`
-This module first takes as input the three skymodel outputs and uses them to create an SKA-Mid-observed model of the HI sky.  The lower frequency continuum cube is used to simulate imperfect continuum subtraction. The higher frequency continuum field is used to create HI absorption signatures. The module outputs the final HI image cube and a corresponding continuum image cube.
+This module takes as input the three skymodel outputs and uses them to create an SKA-Mid-observed model of the HI sky.  The lower frequency continuum cube is used to simulate imperfect continuum subtraction. The higher frequency continuum field is used to create HI absorption signatures. The module outputs the final HI image cube and a corresponding continuum image cube.
  
-The `inis` directory contains example initialisation files for each step. Each ini file is available in either a 'dev', ldev', 'eval', or 'full' variation, representing the 'development', large development', evalutaion', and 'full Challenge' datasets produced for SDC2.
+The `inis` directory contains the initialisation files that are used for each step. Each ini file is available in either a 'dev', ldev', 'eval', or 'full' variation, representing the 'development', large development', evalutaion', and 'full Challenge' datasets produced for SDC2.
 
 At the end of the run, the SKA-Mid-observed HI and continuum image cubes can be found along with the output HI source catalogue in `out/products`.
 
-### Simulation description
+#### Simulation description
 
-A detailed description of the simulations is available in Section 3 of the SDC2 paper (link).
+A detailed description of the simulations is available in Section 3 of the SDC2 paper [here](https://arxiv.org/abs/2303.07943).
 
 
-## License
+### License
 
