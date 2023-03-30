@@ -67,11 +67,19 @@ This module takes as input the three skymodel outputs and uses them to create an
  
 The `inis` directory contains the initialisation files that are used for each step. Each ini file is available in either a 'dev', ldev', 'eval', or 'full' variation, representing the 'development', large development', evalutaion', and 'full Challenge' datasets produced for SDC2.
 
-At the end of the run, the SKA-Mid-observed HI and continuum image cubes can be found along with the output HI source catalogue in `out/products`.
+At the end of the run, the SKA-Mid-observed HI and continuum image cubes can be found along with the output truth catalogues in `out/products`.
 
 #### Simulation description
 
 A detailed description of the simulations is available in Section 3 of the SDC2 paper [here](https://arxiv.org/abs/2303.07943).
+
+#### Changes 
+
+These scripts does not reproduce the exact same output as the data products used in SDC2. This is due to two changes in the code:
+
+* The observe scripts have been updated to use the latest version of miriad. This results in very small numerical differences between some outputs of observe.py. The differences are at the level of 1 percent on the value of an individual pixel.
+* The skymodel modules have been updated slightly to change the way that sources that touch the edge of the large cube are dealt with; previously, these sources were rejected. Now, the sources are included but are clipped at the edge. 
+
 
 
 
