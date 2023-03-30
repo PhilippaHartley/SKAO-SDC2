@@ -77,8 +77,8 @@ A detailed description of the simulations is available in Section 3 of the SDC2 
 
 These scripts does not reproduce the exact same output as the data products used in SDC2. This is due to two changes in the code:
 
-* The observe scripts have been updated to use the latest version of miriad. This results in very small numerical differences between some outputs of observe.py. The differences are at the level of 1 percent on the value of an individual pixel.
-* The skymodel modules have been updated slightly to change the way that sources that touch the edge of the large cube are dealt with; previously, these sources were rejected. Now, the sources are included but are clipped at the edge. 
+* The `observe` scripts have been updated to use the latest version of miriad. This results in very small numerical differences between some outputs of observe.py. The differences are at the level of 1 percent on the value of an individual pixel.
+* The `skymodel` modules have been updated slightly to change the way that sources that touch the edge of the large cube are dealt with; previously, these sources were rejected. Now, the sources are included but are clipped at the edge. 
 
 
 
