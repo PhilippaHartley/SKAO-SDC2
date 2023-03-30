@@ -1,6 +1,6 @@
 # Science Data Challenge 2: Neutral Hydrogen
 
-This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge ([SDC2](https://sdc2.astronomers.skatelescope.org/)). A detailed description on the simulations can be found in Section 3 of the SDC2 paper [here].(https://arxiv.org/abs/2303.07943).
+This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge ([SDC2](https://sdc2.astronomers.skatelescope.org/)). A detailed description on the simulations can be found in Section 3 of the SDC2 [paper](https://arxiv.org/abs/2303.07943).
 
 ### Prerequisites
 
