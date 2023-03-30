@@ -1,6 +1,6 @@
 # Science Data Challenge 2: Neutral Hydrogen
 
-This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge (SDC2).lihnk to website
+This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge ([SDC2](https://sdc2.astronomers.skatelescope.org/)).
 
 ### Prerequisites
 
@@ -28,7 +28,7 @@ before installing via
 
 #### Source input catalogues
 
-The pipeline uses catalogue files produced by T-RECS. The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
+The pipeline uses catalogue files produced using [T-RECS](https://github.com/abonaldi/TRECS). The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
 
 ### Basic usage
 
