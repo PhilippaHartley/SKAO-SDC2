@@ -67,13 +67,13 @@ This module takes as input the three skymodel outputs and uses them to create an
  
 The `inis` directory contains the initialisation files that are used for each step. Each ini file is available in either a 'dev', ldev', 'eval', or 'full' variation, representing the 'development', large development', evalutaion', and 'full Challenge' datasets produced for SDC2.
 
-At the end of the run, the SKA-Mid-observed HI and continuum image cubes can be found along with the output truth catalogues in `out/products`.
+At the end of the run, the SKA-Mid-observed HI and continuum image cubes can be found along with the output HI source catalogues in `out/products`.
 
 #### Simulation description
 
 A detailed description of the simulations is available in Section 3 of the SDC2 paper [here](https://arxiv.org/abs/2303.07943).
 
-#### Changes 
+### Changes 
 
 These scripts does not reproduce the exact same output as the data products used in SDC2. This is due to two changes in the code:
 
