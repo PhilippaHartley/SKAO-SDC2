@@ -1,3 +1,0 @@
-- [ ] make all inis for observe
-- [ ] fix logging
-- [ ] tidy up output catalogues
