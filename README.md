@@ -42,10 +42,10 @@ The pipeline uses catalogue files produced using [T-RECS](https://github.com/abo
 An end-to-end pipeline, `run_SDC2_pipeline.py`, can be used to simulate the data products produced for SDC2. 
 
 Four data product versions were produced for SDC2:
-*'dev' (FoV 30 arcmin): a 'development' datacube used by SDC2 teams for pipeline development
-*'ldev' (FoV 60 arcmin): the same as 'dev' but covering a larger field of view
-*'eval' (FoV 30 arcmin): an 'evaluation' data cube used by SDC2 teams for validating subnmission file formats
-*'full' (FoV 273 arcmin): the full Challenge datacube
+* 'dev' (FoV 30 arcmin): a 'development' datacube used by SDC2 teams for pipeline development
+* 'ldev' (FoV 60 arcmin): the same as 'dev' but covering a larger field of view
+* 'eval' (FoV 30 arcmin): an 'evaluation' data cube used by SDC2 teams for validating subnmission file formats
+* 'full' (FoV 273 arcmin): the full Challenge datacube
 
 The default version that will be run is 'dev'. This can be changed by passing a version name as an argument to the main script, e.g. `python run_SDC2_pipeline.py eval`.
 
