@@ -38,7 +38,6 @@ The pipeline uses catalogue files produced using [T-RECS](https://github.com/abo
 
 `python run_SDC2_pipeline.py`
 
-
 ### Detailed usage
 
 #### How to run the SDC2 simulation pipeline
