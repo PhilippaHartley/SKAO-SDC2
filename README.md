@@ -26,6 +26,8 @@ before installing via
 
 `python setup.py install`
 
+
+
 #### Source input catalogues
 
 The pipeline uses catalogue files produced using [T-RECS](https://github.com/abonaldi/TRECS). The catalogues produced for use during SDC2 can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). For use with these scripts, place the SDC2_catalogues directory inside the directory that contains this repository.
