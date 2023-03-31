@@ -14,7 +14,7 @@ These `inc/linux64/` files have been edited in order to compile miriad for SKA s
 
 ### GNUmakedefs file 
 
-This is a version of the `linux64/` file produced by `configure`. It was edited after running configure, in order to solve memory allocation and other issues. Main differences between this version of the GNUmakedefs file and the default settings:
+This is a modified version of the `linux64/` file produced by `configure`. It was modified after running configure. The modifications solve memory allocation and other issues. Main differences between this version of the GNUmakedefs file and the default settings:
 
 1.
 
