@@ -18,7 +18,7 @@ Activate this environment
 
 `conda activate SDC2`
 
-Then install fitsio by navigating to the directory containing the modified source code e.g.
+Then install fitsio by navigating to the directory containing the modified source code, e.g.:
 
 `cd /home/software/fitsio`
 
