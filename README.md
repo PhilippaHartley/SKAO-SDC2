@@ -8,7 +8,7 @@ This repository contains a collection of scripts used to generate mock SKA-Mid-o
 
 The Python environment has been exported to `SDC2_full_dependencies.yml` which lists the Python dependencies.
 
-Also in use is a version of [fitsio](https://pypi.org/project/fitsio/) that has been patched to allow arbitrarily large file sizes to be written directly to disk, and to allow subsets of data to be written to the file on disk (this functionality is currently unavailable in AstroPy). The patched version can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). 
+Also in use is a version of [fitsio](https://pypi.org/project/fitsio/) that has been modified to allow arbitrarily large file sizes to be written directly to disk, and to allow subsets of data to be written to the file on disk (this functionality is currently unavailable in AstroPy). The modified version can be downloaded from [here](https://drive.google.com/drive/folders/15h0hE-cnqvS6xpX90qtX_Ji1wzC65V9R?usp=sharing). 
 
 To set up the environment for running the pipeline, first create the Python environment via conda
 
@@ -18,7 +18,7 @@ Activate this environment
 
 `conda activate SDC2`
 
-Then install fitsio by navigating to the patched source code directory e.g.
+Then install fitsio by navigating to the directory containing the modified source code e.g.
 
 `cd /home/software/fitsio`
 
