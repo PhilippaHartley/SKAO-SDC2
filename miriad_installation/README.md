@@ -6,7 +6,7 @@ WARNING: this space just collects together the settings used on a specfic machin
 
 The bash script, `build_miriad.sh` was used for testing different installation options within the custom files. If the script finds a directory called `miriad` in its own directory it will first delete it before re-untarring the source files into a new `miriad`. It then runs `configure`, before copying any necessary modified files from the designated directory to the necessary location in the new `miriad` directory. 
  
-A binary version of miriad was installed prior to running the source code installation steps. Some libraries from the binary version were used during the source code installation.
+A binary version of miriad was installed prior to running the source code installation steps. Some libraries from the binary version were used during the source code installation. The path to the binary files is provided at the top of the bash script.
 
 ### maxdim*.h files
 
