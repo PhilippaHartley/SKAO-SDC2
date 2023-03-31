@@ -12,7 +12,7 @@ Also in use is a version of [fitsio](https://pypi.org/project/fitsio/) that has 
 
 To set up the environment for running the pipeline, first create the Python environment via conda
 
-`conda env create --file SDC2.yml`
+`conda env create --file SDC2_full_dependencies.yml`
 
 Activate this environment
 
