@@ -1,8 +1,20 @@
-This directory contains files that were used to install a 1024 antenna version of MIRIAD on a Ubuntu 22.04.2 LTS system. 
+This directory contains custom files that were used to install a 1024 antenna version of MIRIAD on a Ubuntu 22.04.2 LTS system. 
 
-The bash script is intended for testing different installation options within the above custom files. If the script finds a directory called miriad in its own directory it will first delete it before re-untarring the source files into a new miriad. It then runs configure, before copying any necessary modified files from the designated directory to the necessary location in the new miriad directory.
+WARNING: this space just collects together the settings used on a specfic machine at a particular point in time. Please refer to the developers' [pages](https://www.atnf.csiro.au/computing/software/miriad/INSTALL.html) for the correct and full instructions.
 
-Main differences in GNUmakedefs file from default settings produced by configure:
+### Bash script
+
+The bash script, `build_miriad.sh` was used for testing different installation options within the custom files. If the script finds a directory called `miriad` in its own directory it will first delete it before re-untarring the source files into a new `miriad`. It then runs `configure`, before copying any necessary modified files from the designated directory to the necessary location in the new `miriad` directory. 
+ 
+A binary version of miriad was installed prior to running the source code installation steps. Some libraries from the binary version were used during the source code installation.
+
+### maxdim*.h files
+
+These `inc/linux64/` files have been edited in order to compile miriad for SKA simulations. The number of telescopes required is specfied by `MAXANT=1024`. 
+
+### GNUmakedefs file 
+
+This is a version of the `linux64/` file produced by `configure`. It was edited after running configure, in order to solve memory allocation and other issues. Main differences between this version of the GNUmakedefs file and the default settings:
 
 1.
 
@@ -20,4 +32,4 @@ Main differences in GNUmakedefs file from default settings produced by configure
 
 4.
 
-full paths to rpfits and wcs libraries from the binary installation are added to GNUmakedefs
+Full paths to rpfits and wcs libraries from the binary installation are added to GNUmakedefs.
