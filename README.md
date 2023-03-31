@@ -4,7 +4,7 @@ This repository contains a collection of scripts used to generate mock SKA-Mid-o
 
 ### Prerequisites
 
-#### Environment
+#### Python environment and FITSIO
 
 The Python environment has been exported to `SDC2_full_dependencies.yml` which lists the Python dependencies.
 
@@ -26,7 +26,9 @@ before installing via
 
 `python setup.py install`
 
+#### MIRIAD 
 
+The MIRIAD package ([Sault et al., 2011](https://ui.adsabs.harvard.edu/abs/2011ascl.soft06007S/abstract)) is required for the telescope simulations. Tarballs and full installation instructions are available from [here](https://www.atnf.csiro.au/computing/software/miriad/INSTALL.html)). For SKA simulations, a non-default 1024 antenna version is required. To compile this version, edit in the miriad source code the `miriad/inc/maxmid.h` and `miiriad/inc/maxdimc.h` files to specify the  `MAXANT = 1024`. Example include files can be found with a description of the steps taken to install a 1024 antenna version on a Ubuntu 22 system in `miriad_installation/`.
 
 #### Source input catalogues
 
