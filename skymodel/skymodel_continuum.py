@@ -29,11 +29,6 @@ from skymodel.skymodel_tools import setup_wcs
 
 
 
-
-# mother_seed=5820743 #seed for random number generation - fullcube
-# mother_seed = 6879432  # seed for random number generation - smallcube1 (dev)
-# mother_seed=7984532 #seed for random number generation -smallcube2 (eval)
-
 arcsectorad = (1.0 * uns.arcsec).to(uns.rad).value
 degtoarcsec = (1.0 * uns.deg).to(uns.arcsec).value
 
@@ -96,9 +91,10 @@ def add_source_continuum(
     y = float(y)
 
     logging.info("RA, Dec: %f %f ", cat_gal["RA"], cat_gal["DEC"])
-    # logging.info('freq, z: %f %f',  cat_gal['central_freq'], cat_gal['z'])
+    logging.info("PA, flux: %f %f ", cat_gal["PA"], cat_gal["Total_flux"])
+    logging.info("class:  %f", cat_gal["RadioClass"])
     logging.info("x, y,: %f %f ", x, y)
-
+    
     logging.info("Continuum size from cat:  %f", cat_gal["Maj"])
 
     # get the postage for the source
@@ -205,7 +201,9 @@ def add_source_continuum(
         fitsf = FITS(all_gals_fname, "rw")
         fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
         fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
+        #testpola
 
+              
         # the redshift map contains the redshift of the brightest source on the LoS. 
         # this is judged by looking at the dummy map _maxflux and comparing if with the postage stamp. 
         # the z map is updated only where the postage stamp is brighter than what recorder in _maxflux
@@ -235,7 +233,44 @@ def add_source_continuum(
         fitsf[0].write(img3, blc0, blc1, blc2, trc0, trc1, trc2)
 
         fitsf.close()
+        fitsf_f.close()
+        fitsf_z.close()
 
+        #testpola
+        if (polarization == True):
+            
+            fitsf_p = FITS(all_gals_fname + "_pola.fits", "rw")
+            fitsf_q = FITS(all_gals_fname + "_Q.fits", "rw")
+            fitsf_u = FITS(all_gals_fname + "_U.fits", "rw")
+
+            img3_pola= img3*cat_gal['polafrac']
+            img3_q=img3_pola*np.cos(cat_gal['EVPA']/ 180. * np.pi)
+            img3_u=img3_pola*np.sin(cat_gal['EVPA']/ 180. * np.pi)
+
+            region = fitsf_p[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+                        
+            img3_pola += region
+            fitsf_p[0].write(img3_pola, blc0, blc1, blc2, trc0, trc1, trc2)
+
+
+            region = fitsf_q[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+                            
+            img3_q += region
+            fitsf_q[0].write(img3_q, blc0, blc1, blc2, trc0, trc1, trc2)
+
+
+
+            region = fitsf_u[0][blc0 : trc0 + 1, blc1 : trc1 + 1, blc2 : trc2 + 1]
+            img3_u += region
+            fitsf_u[0].write(img3_u, blc0, blc1, blc2, trc0, trc1, trc2)
+
+            fitsf_p.close()
+            fitsf_q.close()
+            fitsf_u.close()
+
+                        
+
+        
     logging.info("")
 
     return (i, atlas_source, flux, unresolved)
@@ -389,6 +424,11 @@ def runSkyModel(config):
     os.system("rm {0}".format(all_gals_fname))
     os.system("rm {0}".format(all_gals_fname + "_z.fits"))
     os.system("rm {0}".format(all_gals_fname + "_maxflux.fits"))
+    os.system("rm {0}".format(all_gals_fname + "_pola.fits"))
+    os.system("rm {0}".format(all_gals_fname + "_Q.fits"))#a
+    os.system("rm {0}".format(all_gals_fname + "_U.fits"))#a
+
+    
     logging.info("Creating empty image file, {0} ...".format(all_gals_fname))
 
     # exploting the expand_if_needed functionality of the image write function in fitsio
@@ -435,22 +475,7 @@ def runSkyModel(config):
         np.float32
     )  # empy array for 1D maps
 
-    fitsf = FITS(all_gals_fname, "rw")
-
-    # files storing the brightest object and the redshift of the brightest object
-    fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
-    fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
-    
-    # initialise files
-    fitsf.write(img2, header=header_dict)
-    fitsf_f.write(img2_1D, header=header_dict)
-    fitsf_z.write(img2_1D, header=header_dict)
-    fitsf.close()
-    fitsf_f.close()
-    fitsf_z.close()
-    fitsf = FITS(all_gals_fname, "rw")
-    fitsf.close()
-    
+ 
     cr_x, cr_y = w_twod.wcs_world2pix(
         ra_field_gs,
         dec_field_gs,
@@ -459,8 +484,44 @@ def runSkyModel(config):
    
     logging.info("Check world2pix crpix1, crpix2: %f %f", cr_x, cr_y)
     
-    # Load the catalogue
-    HI_cross = False  # assume that the catalogue is con cross-matched with HI
+    
+    polarization = False
+    if config.getboolean("skymodel", "dopolarization") == True:
+        polarization = True
+
+
+       # initialise files 
+    fitsf = FITS(all_gals_fname, "rw")
+    fitsf_f = FITS(all_gals_fname + "_maxflux.fits", "rw")
+    fitsf_z = FITS(all_gals_fname + "_z.fits", "rw")
+
+
+    fitsf.write(img2, header=header_dict)
+    fitsf_f.write(img2_1D, header=header_dict)
+    fitsf_z.write(img2_1D, header=header_dict)
+
+    fitsf.close()
+    fitsf_f.close()
+    fitsf_z.close()
+    
+    if (polarization == True):
+        fitsf_p = FITS(all_gals_fname + "_pola.fits", "rw")
+        fitsf_q = FITS(all_gals_fname + "_Q.fits", "rw")
+        fitsf_u = FITS(all_gals_fname + "_U.fits", "rw")
+
+        fitsf_p.write(img2, header=header_dict)
+        fitsf_q.write(img2, header=header_dict)
+        fitsf_u.write(img2, header=header_dict)
+    
+
+        fitsf_p.close()
+        fitsf_q.close()
+        fitsf_u.close()
+        
+    
+
+    HI_cross = False  # assume that the catalogue is not cross-matched with HI
+    
     cat_file_name = config.get("field", "catalogue")
     logging.info("Loading catalogue from {0} ...".format(cat_file_name))
     cat = Table()
@@ -511,6 +572,19 @@ def runSkyModel(config):
         cat["Total_flux"] / cat["flux2"]
     ) / np.log10(base_freq / top_freq)
 
+    if (polarization == True):
+         cat["polafrac"] = cat_read["P" + base_freqname] * 1.0e-3 /cat["Total_flux"]
+         #polarization fraction
+         # here generate polarization angle EVPA=2*chi.
+         # convention it is 0 at North and anticlockwise
+         np.random.seed(mother_seed + 1093548)
+         evpa = np.random.uniform(low=0, high=180.0, size=len(cat)
+         )  
+         cat["EVPA"] = evpa
+         
+    
+
+    
     # read the relevant quantities to implement flux cuts
     if config.getboolean("continuum", "highfluxcut") == True:
         highflux = config.getfloat("continuum", "highfluxcut_value")
@@ -545,9 +619,9 @@ def runSkyModel(config):
     cat["Rs"] = cat_read["Rs"]
     rdcl = cat_read["RadioClass"]  # to be used in source selection
     cat["RadioClass"] = rdcl
-    pa = cat_read[
-        "PA"
-    ]  # this is the HI PA. rotate of 90 degs for AGN counterparts
+
+    ###Position angle needs modifications and filling for AGN
+    pa = cat_read["PA"]  # this is the HI PA for HI x continuum. rotate of 90 degs for AGN counterparts
 
     if HI_cross == True:
         # PA in continuum is the HI PA rotated by 90 degs
@@ -556,16 +630,17 @@ def runSkyModel(config):
         pa_copy[pa == -100] = -100.0
         pa[rdcl > 3] = pa_copy[rdcl > 3]  # AGN PA 90degs from HI PA.
         pa_1 = cat_read["PA_1"]
-        np.random.seed(mother_seed + 1)
-        pa_2 = np.random.uniform(
-            low=0, high=359.0, size=len(cat)
-        )  # PA not defined for AGN, here generate random
         pa[pa == -100] = pa_1[pa == -100]
-        pa[pa == -100] = pa_2[pa == -100]
-        # free
         pa_1 = 0
-        pa_2 = 0
         pa_copy = 0
+        
+    # PA not defined for AGN, here generate random
+    np.random.seed(mother_seed + 1)
+    pa_2 = np.random.uniform(low=0, high=359.0, size=len(cat))
+    pa[pa == -100] = pa_2[pa == -100]
+    pa_2 = 0
+    
+
 
     cat["PA"] = pa
     cat["PA"].unit = "deg"
@@ -661,6 +736,7 @@ def runSkyModel(config):
 
 
     nobj = len(cat)
+
     cat = cat[
         "id",
         "RA",
@@ -680,7 +756,7 @@ def runSkyModel(config):
     ]
 
 
-    print("going into loop")
+    
     multiprocessing.get_context("fork")
     # set up mutex lock
 

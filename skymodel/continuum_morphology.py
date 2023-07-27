@@ -47,11 +47,11 @@ def make_img(
     kernel = Gaussian2DKernel(x_stddev=Gaus_sigma)
     size_in_pixels = ska_size / ska_dx
     Gaussize_in_pixels = size_in_pixels  # FWHM - this is true for flat-spectrum AGN
-    Gauss_minor_size_in_pixels = (
-        Gaussize_in_pixels  # initialised for a circularly symmetric source
-    )
+    Gauss_minor_size_in_pixels = Gaussize_in_pixels  # initialised for a circularly symmetric source)
     smoothing_done = 0  # initialise flag to control when mild convolution is done
 
+    
+    
     if radioclass < 4:
         Gaussize_in_pixels = (
             Gaussize_in_pixels * 1.4241
@@ -60,7 +60,7 @@ def make_img(
             Gaussize_in_pixels * ska_min / ska_size
         )  # minor axis
 
-    if radioclass == 6:
+    if (radioclass == 6):
         Gaussize_in_pixels = (
             size_in_pixels / 3.0
         )  # LAS approximated with a 3sigma - it varies for different images and true distribution is not Gaussian
@@ -68,6 +68,9 @@ def make_img(
             Gaussize_in_pixels  # initialised for a circularly symmetric source
         )
 
+
+    logging.info("radioclass,size in pixels %f %f", radioclass,Gaussize_in_pixels)
+    
     ska_ellip = 1.0 - ska_min / ska_size
     beamsigma_in_pixels = psf_maj / sigma2FWHM / ska_dx
 
@@ -109,6 +112,7 @@ def make_img(
         cube_name = "SFG resolved"
         is_unresolved = 0
 
+    
     if (Gaussize_in_pixels > 3.0) and (radioclass >= 4) and (radioclass < 6):
         # flat-spectrum AGN source. A Gaussian lobe with a Gaussian core
 
@@ -135,26 +139,27 @@ def make_img(
         is_unresolved = 0
 
     if (radioclass == 6) and (Gaussize_in_pixels > 3.0):
-        # SS resolvd AGN: use a postage stamp from a real image
-     
+        # SS resolved AGN: use a postage stamp from a real image
+        logging.info("Check: %s", datacube_dir + prepared_dir + prepared_metadata)
+        
         is_unresolved = 0
         prepared_cubes = np.loadtxt(datacube_dir + prepared_dir + prepared_metadata, dtype="str")
-      
+        
+        
+        
         # choose atlas cube
         atlas_ranid = prepared_cubes[:, 1].astype(np.float)  
         distance_to_sample = abs(atlas_ranid - ska_ranid)
         distance_min_arg = np.argmin(distance_to_sample)
-     
+
+        
         logging.info("Chosen atlas source: %s", prepared_cubes[distance_min_arg, 0])
 
         # get datacube and header properties
         cube_name = prepared_cubes[distance_min_arg, 0]  
           
-        
-        print("cube_name: ", cube_name)
-
-
-        cube_fits = fits.open(cube_name)
+    
+        cube_fits = fits.open(datacube_dir + prepared_dir+cube_name)
         cube = cube_fits[0].data
 
         logging.info("Atlas sample shape: %s", cube.shape)
@@ -216,7 +221,7 @@ def make_img(
         )  # additional smoothing PSF in units of the map pixel
 
       
-        if psf_smooth > 0.0:
+        if (psf_smooth > 0.0):
 
             atlas_smoo = psf_smooth / sigma2FWHM
           
@@ -275,10 +280,9 @@ def make_img(
     new_a_size = cube2.shape[0]
     new_b_size = cube2.shape[1]
 
-    cube2_allfreqs = np.zeros((nfreqs, int(new_a_size), int(new_b_size))).astype(
-        np.float32
-    )
-    # print(ska_alpha,ska_flux)
+    cube2_allfreqs = np.zeros((nfreqs, int(new_a_size), int(new_b_size))).astype(np.float32)
+
+    
     for ff in range(nfreqs):
         norm = (
             ska_flux * (freqs[ff] / ska_freqmin) ** ska_alpha
@@ -296,7 +300,8 @@ def make_img(
 
     cube3 = cube2_allfreqs  # this will be the smoothed version
 
-    logging.info("Rotating to postion angle: %f", ska_PA)
+    logging.info("cube name: %s", cube_name)
+    logging.info("Rotating to position angle: %f", ska_PA)
     # ~~~~~~~~~~~~ rotate to PA ~~~~~~~~~~~~~~~~~~~~~~
 
     cube4 = scipy.ndimage.rotate(
