@@ -12,8 +12,7 @@ This repository contains a collection of scripts used to generate mock SKA-Mid-o
   year = {2022},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/PhilippaHartley/SKAO-SDC2}},
-  commit = {cc5e9973cdb0dcbf1c6b6e1401bf44b9c69e13f3}
+  howpublished = {\url{https://github.com/PhilippaHartley/SKAO-SDC2}}
 }
 ```
 
