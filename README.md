@@ -2,6 +2,21 @@
 
 This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge ([SDC2](https://sdc2.astronomers.skatelescope.org/)). A detailed description on the simulations can be found in Section 3 of the SDC2 [paper](https://arxiv.org/abs/2303.07943).
 
+### Citation
+
+
+```
+@misc{SKAO_Science_Data_Challenge_2,
+  author = {{Hartley}, P. and {Bonaldi, A. and {Braun}, R.},
+  title = {SKAO-SDC2},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/PhilippaHartley/SKAO-SDC2}},
+  commit = {cc5e9973cdb0dcbf1c6b6e1401bf44b9c69e13f3}
+}
+```
+
 ### Prerequisites
 
 #### Python environment and FITSIO
