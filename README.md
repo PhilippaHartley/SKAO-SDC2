@@ -2,6 +2,10 @@
 
 This repository contains a collection of scripts used to generate mock SKA-Mid-observed neutral hydrogen (HI) datacubes for the second SKA Science Data Challenge ([SDC2](https://sdc2.astronomers.skatelescope.org/)). A detailed description on the simulations can be found in Section 3 of the SDC2 [paper](https://arxiv.org/abs/2303.07943).
 
+## Test badge
+
+![My Remote Image](https://www.dropbox.com/scl/fi/sqk32n2bf080a2ywx1r44/SDC3a_reproducible_pipeline_smallest.png?rlkey=he78aca1j4z051moi0c9v9y1g&dl=0)
+
 ### Citation
 
 
