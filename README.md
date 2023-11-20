@@ -4,7 +4,7 @@ This repository contains a collection of scripts used to generate mock SKA-Mid-o
 
 ## Test badge
 
-![My Remote Image](https://www.dropbox.com/scl/fi/sqk32n2bf080a2ywx1r44/SDC3a_reproducible_pipeline_smallest.png?rlkey=he78aca1j4z051moi0c9v9y1g&dl=0)
+![My Remote Image](https://uc9e62fbdf8f7783342b43806158.previews.dropboxusercontent.com/p/thumb/ACFT81THAHQgC3tmtABXCEcjCq-zQXPIetE0LWVjHhJxHJhGFLwr4DKHhF5TTG7pNXAbQTnKv42bWuZsmcnwzC147D6Ezzt0ixyZ55b39_8ifDcfgwtucK6Amws1q94uwDf-uTSA_p3WQftzDm6H43M85246IyH6ezHiI7rmRq6wmKI1_UPw6mtRnRRkIR2Zi6YPokxEmuoTkMx06mpPbZ8CIKoVILsHTtIz8br67iTA58HRR8DD5FfLj_ZQC36NI_wwWL-FKcZZxN88YErKmmqvKdGfkuVUS512018brpnhAF4wjm40gR0u8vUJbwYU1dt-hgnKozhzsMFOtg3O47e73BO2Bk_PCiACN2GsR5HUKzvC_aw1anOuhL9fk3XUFwU/p.png)
 
 ### Citation
 
