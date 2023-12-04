@@ -11,7 +11,7 @@ This repository contains a collection of scripts used to generate mock SKA-Mid-o
 
 ```
 @misc{SKAO_Science_Data_Challenge_2,
-  author = {{Hartley}, P. and {Bonaldi, A. and {Braun}, R.},
+  author = {{Hartley}, P. and {Bonaldi}, A. and {Braun}, R.},
   title = {SKAO-SDC2},
   year = {2022},
   publisher = {GitHub},
